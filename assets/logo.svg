@@ -4,9 +4,19 @@
       <stop offset="0" stop-color="#151a26"/>
       <stop offset="1" stop-color="#0b0d12"/>
     </linearGradient>
+    <clipPath id="cTop"><circle cx="256" cy="188" r="140"/></clipPath>
+    <clipPath id="cLeft"><circle cx="188.5" cy="305" r="140"/></clipPath>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <rect x="16" y="16" width="480" height="480" rx="100" fill="none" stroke="#4f7cff" stroke-opacity="0.35" stroke-width="8"/>
-  <text x="236" y="330" text-anchor="middle" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="240" font-weight="800" fill="#ffffff" letter-spacing="-12">42</text>
-  <rect x="374" y="152" width="44" height="176" rx="10" fill="#4f7cff"/>
+  <!-- life, the universe, everything -->
+  <circle cx="256" cy="188" r="140" fill="none" stroke="#ffffff" stroke-opacity="0.85" stroke-width="13"/>
+  <circle cx="188.5" cy="305" r="140" fill="none" stroke="#ffffff" stroke-opacity="0.85" stroke-width="13"/>
+  <circle cx="323.5" cy="305" r="140" fill="none" stroke="#ffffff" stroke-opacity="0.85" stroke-width="13"/>
+  <!-- the intersection is the answer -->
+  <g clip-path="url(#cTop)">
+    <g clip-path="url(#cLeft)">
+      <circle cx="323.5" cy="305" r="140" fill="#4f7cff"/>
+    </g>
+  </g>
+  <text x="256" y="290" text-anchor="middle" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="76" font-weight="800" fill="#ffffff" letter-spacing="-3">42</text>
 </svg>
