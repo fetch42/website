@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fetch42 — Dashboard</title>
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<meta name="robots" content="noindex">
+<style>
+  :root { --bg:#0b0d12; --panel:#12151d; --line:#1f2430; --text:#e8eaf0; --muted:#9aa3b2; --accent:#4f7cff; --green:#3ecf8e; --red:#f87171; }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--bg); color:var(--text); font:16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width:860px; margin:0 auto; padding:0 24px 64px; }
+  header { padding:28px 0; display:flex; justify-content:space-between; align-items:center; }
+  .logo { font-weight:700; font-size:20px; letter-spacing:-.02em; display:flex; align-items:center; gap:10px; }
+  .logo a { color:var(--text); text-decoration:none; }
+  .logo span { color:var(--accent); }
+  .logo img { width:30px; height:30px; border-radius:7px; }
+  h1 { font-size:28px; letter-spacing:-.02em; margin:24px 0 6px; }
+  h2 { font-size:18px; letter-spacing:-.01em; margin:32px 0 10px; }
+  .muted { color:var(--muted); font-size:14.5px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; margin:14px 0; }
+  input[type=email] { background:#0e1118; border:1px solid var(--line); border-radius:8px; color:var(--text); font-size:16px; padding:11px 14px; width:100%; max-width:340px; }
+  button, .btn { background:var(--accent); border:0; border-radius:8px; color:#fff; cursor:pointer; font-size:15px; font-weight:600; padding:11px 18px; }
+  button:hover { filter:brightness(1.1); }
+  button.ghost { background:transparent; border:1px solid var(--line); color:var(--muted); font-weight:500; }
+  button:disabled { opacity:.5; cursor:default; }
+  .balance { font-size:38px; font-weight:800; letter-spacing:-.02em; }
+  .balance small { font-size:16px; color:var(--muted); font-weight:500; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+  tr:last-child td { border-bottom:none; }
+  code, .mono { font-family:ui-monospace, "SF Mono", Menlo, monospace; }
+  .keybox { background:#0e1118; border:1px solid var(--accent); border-radius:8px; padding:14px; margin:10px 0; word-break:break-all; }
+  .ok { color:var(--green); } .bad { color:var(--red); }
+  #msg { margin:10px 0; font-size:14.5px; min-height:20px; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><img src="/assets/logo.svg" alt=""><a href="/">fetch<span>42</span></a>&nbsp;<span class="muted" style="font-weight:400">dashboard</span></div>
+    <button id="signout" class="ghost hidden">Sign out</button>
+  </header>
+
+  <div id="msg"></div>
+
+  <!-- signed out -->
+  <section id="auth" class="hidden">
+    <h1>Get your API key</h1>
+    <p class="muted">Enter your email — we'll send a sign-in link. New accounts start with <b>$3 free credit</b> (~1,000 calls). No card required.</p>
+    <div class="card">
+      <form id="loginForm" class="row">
+        <input type="email" id="email" placeholder="you@company.com" required autocomplete="email">
+        <button type="submit" id="loginBtn">Send sign-in link</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- signed in -->
+  <section id="app" class="hidden">
+    <h1>Balance</h1>
+    <div class="card">
+      <div class="balance" id="balance">—</div>
+      <p class="muted">Prepaid, pay per call. Credits never expire. Failed calls are never charged.</p>
+      <div class="row" style="margin-top:12px">
+        <button data-amt="5">Top up $5</button>
+        <button data-amt="20">Top up $20</button>
+        <button data-amt="50">Top up $50</button>
+      </div>
+    </div>
+
+    <h2>API keys</h2>
+    <div class="card">
+      <div id="newKey" class="hidden">
+        <p><b>Your new API key — copy it now, it is shown only once:</b></p>
+        <div class="keybox mono" id="newKeyValue"></div>
+        <button id="copyKey" class="ghost">Copy</button>
+      </div>
+      <table id="keysTable"><thead><tr><th>Key</th><th>Name</th><th>Daily cap</th><th>Created</th><th></th></tr></thead><tbody></tbody></table>
+      <div class="row" style="margin-top:12px"><button id="createKey">Create key</button></div>
+    </div>
+
+    <h2>Recent calls</h2>
+    <div class="card">
+      <table id="callsTable"><thead><tr><th>Time (UTC)</th><th>Endpoint</th><th>Provider</th><th>Price</th><th>ms</th><th></th></tr></thead><tbody></tbody></table>
+      <p class="muted" id="noCalls" style="margin-top:8px">No calls yet. Try:<br><code>curl "https://api.fetch42.ai/v1/tiktok/profile?handle=stoolpresidente" -H "Authorization: Bearer fk_live_…"</code></p>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://ubdleklnejuayewxbqev.supabase.co",
+  "sb_publishable_GC7OJKnc43BQbjKRThE8KQ_HMFpp1q5",
+);
+const API = "https://api.fetch42.ai";
+const $ = (id) => document.getElementById(id);
+const msg = (t, cls = "") => { $("msg").textContent = t; $("msg").className = cls; };
+
+async function sha256hex(s) {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+$("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("loginBtn").disabled = true;
+  const { error } = await supabase.auth.signInWithOtp({
+    email: $("email").value,
+    options: { emailRedirectTo: "https://fetch42.ai/dashboard/" },
+  });
+  msg(error ? `Could not send link: ${error.message}` : "Check your inbox — sign-in link sent.", error ? "bad" : "ok");
+  $("loginBtn").disabled = false;
+});
+
+$("signout").addEventListener("click", async () => { await supabase.auth.signOut(); location.reload(); });
+
+document.querySelectorAll("[data-amt]").forEach((b) =>
+  b.addEventListener("click", async () => {
+    b.disabled = true;
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch(`${API}/billing/topup`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ amount_usd: Number(b.dataset.amt) }),
+    }).then((r) => r.json()).catch(() => null);
+    if (res?.checkout_url) location.href = res.checkout_url;
+    else { msg("Top-up unavailable right now — try again in a minute.", "bad"); b.disabled = false; }
+  }),
+);
+
+$("createKey").addEventListener("click", async () => {
+  $("createKey").disabled = true;
+  const { data: { user } } = await supabase.auth.getUser();
+  const raw = "fk_live_" + [...crypto.getRandomValues(new Uint8Array(24))].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const { error } = await supabase.from("api_keys").insert({
+    user_id: user.id, key_hash: await sha256hex(raw), key_prefix: raw.slice(0, 14), name: "default",
+  });
+  if (error) msg(`Could not create key: ${error.message}`, "bad");
+  else {
+    $("newKeyValue").textContent = raw;
+    $("newKey").classList.remove("hidden");
+    await refreshKeys();
+  }
+  $("createKey").disabled = false;
+});
+
+$("copyKey").addEventListener("click", () => navigator.clipboard.writeText($("newKeyValue").textContent));
+
+async function refreshKeys() {
+  const { data: keys } = await supabase.from("api_keys")
+    .select("id,key_prefix,name,daily_cap_usd,created_at,revoked_at").order("created_at");
+  const tb = $("keysTable").querySelector("tbody");
+  tb.innerHTML = "";
+  for (const k of keys ?? []) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="mono">${k.key_prefix}…</td><td>${k.name}</td><td>$${Number(k.daily_cap_usd).toFixed(2)}/day</td>
+      <td class="muted">${k.created_at.slice(0, 10)}</td>
+      <td>${k.revoked_at ? '<span class="bad">revoked</span>' : `<button class="ghost" data-revoke="${k.id}">Revoke</button>`}</td>`;
+    tb.appendChild(tr);
+  }
+  tb.querySelectorAll("[data-revoke]").forEach((b) =>
+    b.addEventListener("click", async () => {
+      if (!confirm("Revoke this key? Agents using it stop working immediately.")) return;
+      await supabase.from("api_keys").update({ revoked_at: new Date().toISOString() }).eq("id", b.dataset.revoke);
+      refreshKeys();
+    }),
+  );
+}
+
+async function refreshApp() {
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: bal } = await supabase.rpc("get_balance", { p_user_id: user.id });
+  $("balance").innerHTML = `$${Number(bal ?? 0).toFixed(3)} <small>USD</small>`;
+  await refreshKeys();
+  const { data: calls } = await supabase.from("calls")
+    .select("ts,endpoint,provider,posted_price_usd,latency_ms,ok").order("ts", { ascending: false }).limit(20);
+  const tb = $("callsTable").querySelector("tbody");
+  tb.innerHTML = "";
+  for (const c of calls ?? []) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="muted mono">${c.ts.slice(0, 19).replace("T", " ")}</td><td class="mono">${c.endpoint}</td>
+      <td>${c.provider}</td><td class="mono">${c.posted_price_usd ? "$" + Number(c.posted_price_usd).toFixed(3) : "—"}</td>
+      <td class="mono">${c.latency_ms}</td><td class="${c.ok ? "ok" : "bad"}">${c.ok ? "ok" : "failed"}</td>`;
+    tb.appendChild(tr);
+  }
+  $("noCalls").classList.toggle("hidden", (calls ?? []).length > 0);
+}
+
+const { data: { session } } = await supabase.auth.getSession();
+if (new URLSearchParams(location.search).get("topup") === "success") msg("Top-up received — balance updates within a few seconds.", "ok");
+if (session) {
+  $("app").classList.remove("hidden");
+  $("signout").classList.remove("hidden");
+  refreshApp();
+} else {
+  $("auth").classList.remove("hidden");
+}
+supabase.auth.onAuthStateChange((_e, s) => { if (s && $("app").classList.contains("hidden")) location.reload(); });
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3118c88f274a4ce69428687589707360"}'></script>
+</body>
+</html>
