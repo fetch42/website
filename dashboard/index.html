@@ -140,7 +140,7 @@ const supabase = createClient(
   "https://ubdleklnejuayewxbqev.supabase.co",
   "sb_publishable_GC7OJKnc43BQbjKRThE8KQ_HMFpp1q5",
 );
-const API = "https://api.fetch42.ai";
+const API = "https://gateway-production-2c1d.up.railway.app"; // temp until api.fetch42.ai cert issues
 const $ = (id) => document.getElementById(id);
 const msg = (t, cls = "") => { $("msg").textContent = t; $("msg").className = cls; };
 
