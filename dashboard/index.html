@@ -10,127 +10,207 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#07090d; --panel:#12151d; --line:#1f2430; --text:#e8eaf0; --muted:#9aa3b2; --accent:#4f7cff; --green:#3ecf8e; --red:#f87171; }
+  :root { --bg:#050506; --bg2:#0a0a0c; --panel:#101014; --line:#1e1e24; --line2:#2c2c34;
+          --text:#f5f5f7; --muted:#9a9aa3; --accent:#4f7cff; --green:#3ecf8e; --red:#f87171; }
   * { box-sizing:border-box; margin:0; }
-  body { background:var(--bg); color:var(--text); font:16px/1.6 "Inter", -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing:antialiased; }
-  .wrap { max-width:860px; margin:0 auto; padding:0 24px 64px; }
-  header { padding:28px 0; display:flex; justify-content:space-between; align-items:center; }
-  .logo { font-weight:700; font-size:20px; letter-spacing:-.02em; display:flex; align-items:center; gap:10px; }
-  .logo a { color:var(--text); text-decoration:none; }
-  .logo span { color:var(--accent); }
-  .logo img { width:30px; height:30px; border-radius:7px; }
-  h1 { font-size:28px; letter-spacing:-.02em; margin:24px 0 6px; }
-  h2 { font-size:18px; letter-spacing:-.01em; margin:32px 0 10px; }
-  .muted { color:var(--muted); font-size:14.5px; }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; margin:14px 0; }
-  input[type=email] { background:#0e1118; border:1px solid var(--line); border-radius:8px; color:var(--text); font-size:16px; padding:11px 14px; width:100%; max-width:340px; }
-  button, .btn { background:var(--accent); border:0; border-radius:8px; color:#fff; cursor:pointer; font-size:15px; font-weight:600; padding:11px 18px; }
-  button:hover { filter:brightness(1.1); }
-  button.ghost { background:transparent; border:1px solid var(--line); color:var(--muted); font-weight:500; }
-  button:disabled { opacity:.5; cursor:default; }
-  .balance { font-size:38px; font-weight:800; letter-spacing:-.02em; }
-  .balance small { font-size:16px; color:var(--muted); font-weight:500; }
-  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  table { width:100%; border-collapse:collapse; font-size:14px; }
-  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
-  th { color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
-  tr:last-child td { border-bottom:none; }
+  body { background:var(--bg); color:var(--text); font:15px/1.6 "Inter", -apple-system, sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:var(--text); text-decoration:none; }
+  button { font-family:inherit; cursor:pointer; }
+  .hidden { display:none !important; }
   code, .mono { font-family:ui-monospace, "SF Mono", Menlo, monospace; }
-  .keybox { background:#0e1118; border:1px solid var(--accent); border-radius:8px; padding:14px; margin:10px 0; word-break:break-all; }
+  .muted { color:var(--muted); }
   .ok { color:var(--green); } .bad { color:var(--red); }
-  #msg { margin:10px 0; font-size:14.5px; min-height:20px; }
-  .hidden { display:none; }
 
-  /* standard centered auth card */
-  .auth-shell { min-height:calc(100vh - 120px); display:flex; align-items:center; justify-content:center;
-    background-image: radial-gradient(circle, #1c2436 1px, transparent 1px); background-size: 26px 26px; }
-  .auth-card { width:100%; max-width:400px; background:var(--panel); border:1px solid var(--line);
-    border-radius:16px; padding:36px 32px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,.5); }
+  /* ---------- app layout (OpenRouter-style) ---------- */
+  .layout { display:flex; min-height:100vh; }
+  aside { position:sticky; top:0; height:100vh; width:230px; flex:none; display:flex; flex-direction:column;
+          border-right:1px solid var(--line); padding:20px 14px; }
+  .side-logo { display:flex; align-items:center; gap:9px; font-weight:700; font-size:17px; letter-spacing:-.02em; padding:4px 10px 18px; }
+  .side-logo img { width:26px; height:26px; border-radius:6px; }
+  .side-logo span { color:var(--accent); }
+  .nav-item { display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:none; border:0;
+              color:var(--muted); font-size:14.5px; font-weight:500; padding:9px 10px; border-radius:8px; margin-bottom:2px; }
+  .nav-item:hover { color:var(--text); background:var(--bg2); }
+  .nav-item.active { color:var(--text); background:var(--panel); font-weight:600; }
+  .nav-item .ic { width:18px; text-align:center; opacity:.9; }
+  .side-foot { margin-top:auto; border-top:1px solid var(--line); padding-top:14px; }
+  .side-foot .email { font-size:12.5px; color:var(--muted); padding:0 10px 8px; overflow:hidden; text-overflow:ellipsis; }
+  main { flex:1; min-width:0; padding:40px 44px 80px; max-width:1060px; }
+  h1 { font-size:26px; letter-spacing:-.02em; margin-bottom:4px; }
+  .sub { color:var(--muted); font-size:14.5px; margin-bottom:28px; }
+  h2 { font-size:16px; letter-spacing:-.01em; margin:30px 0 12px; }
+
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
+  .stat { background:var(--bg2); border:1px solid var(--line); border-radius:14px; padding:20px; }
+  .stat .label { color:var(--muted); font-size:13px; margin-bottom:8px; }
+  .stat .val { font-size:30px; font-weight:700; letter-spacing:-.02em; }
+  .stat .hint { color:var(--muted); font-size:12.5px; margin-top:6px; }
+
+  .card { background:var(--bg2); border:1px solid var(--line); border-radius:14px; padding:20px; margin:14px 0; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:500; font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; }
+  tr:last-child td { border-bottom:none; }
+  td.r, th.r { text-align:right; }
+
+  .btn { display:inline-flex; align-items:center; gap:7px; background:var(--text); color:#000; border:0;
+         border-radius:999px; font-size:14.5px; font-weight:600; padding:10px 20px; }
+  .btn:hover { background:#fff; }
+  .btn.ghost { background:transparent; border:1px solid var(--line2); color:var(--text); font-weight:500; }
+  .btn.ghost:hover { border-color:var(--muted); background:var(--bg2); }
+  .btn.sm { padding:7px 14px; font-size:13.5px; }
+  .btn:disabled { opacity:.5; cursor:default; }
+  #msg { min-height:22px; font-size:14px; margin-bottom:8px; }
+
+  .keybox { background:#000; border:1px solid var(--accent); border-radius:10px; padding:14px; margin:10px 0; word-break:break-all; }
+  pre.quick { background:#000; border:1px solid var(--line); border-radius:12px; padding:16px; overflow-x:auto;
+              font:12.5px/1.65 ui-monospace, Menlo, monospace; color:var(--muted); }
+  pre.quick b { color:var(--text); font-weight:500; }
+
+  /* ---------- auth (standard centered card) ---------- */
+  .auth-shell { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .auth-card { width:100%; max-width:400px; background:var(--bg2); border:1px solid var(--line);
+    border-radius:16px; padding:36px 32px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,.6); }
   .auth-card .biglogo { width:52px; height:52px; border-radius:12px; margin:0 auto 18px; display:block; }
-  .auth-card h1 { font-size:22px; margin:0 0 6px; letter-spacing:-.02em; }
-  .auth-card .sub { color:var(--muted); font-size:14px; margin-bottom:24px; }
+  .auth-card h1 { font-size:22px; margin:0 0 6px; }
+  .auth-card .asub { color:var(--muted); font-size:14px; margin-bottom:22px; }
   .oauth-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
-    background:#0e1118; border:1px solid var(--line); border-radius:10px; color:var(--text);
-    font-size:15px; font-weight:500; padding:12px 16px; margin-bottom:10px; cursor:pointer; }
-  .oauth-btn:hover { border-color:#2a3242; background:#12161f; filter:none; }
+    background:#000; border:1px solid var(--line); border-radius:10px; color:var(--text);
+    font-size:15px; font-weight:500; padding:12px 16px; margin-bottom:10px; }
+  .oauth-btn:hover { border-color:var(--line2); background:var(--bg2); }
   .oauth-btn svg { width:18px; height:18px; flex:none; }
-  .divider { display:flex; align-items:center; gap:12px; color:var(--muted); font-size:12.5px;
+  .divider { display:flex; align-items:center; gap:12px; color:var(--muted); font-size:12px;
     margin:18px 0; text-transform:uppercase; letter-spacing:.06em; }
   .divider::before, .divider::after { content:""; flex:1; height:1px; background:var(--line); }
-  .auth-card input[type=email] { width:100%; max-width:none; margin-bottom:10px; text-align:center; }
-  .auth-card .submit { width:100%; padding:12px 16px; border-radius:10px; font-size:15px; }
+  .auth-card input[type=email] { width:100%; background:#000; border:1px solid var(--line); border-radius:10px;
+    color:var(--text); font-size:15px; padding:12px 14px; margin-bottom:10px; text-align:center; font-family:inherit; }
+  .auth-submit { width:100%; justify-content:center; border-radius:10px; padding:12px 16px; font-size:15px; }
   .auth-foot { color:var(--muted); font-size:12.5px; margin-top:20px; }
   .auth-foot a { color:var(--muted); text-decoration:underline; }
-  .freeline { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--green);
-    background:rgba(62,207,142,.08); border:1px solid rgba(62,207,142,.25); border-radius:999px;
-    padding:4px 12px; margin-bottom:20px; }
+  .freeline { display:inline-flex; font-size:13px; color:var(--green); background:rgba(62,207,142,.08);
+    border:1px solid rgba(62,207,142,.25); border-radius:999px; padding:4px 12px; margin-bottom:20px; }
+
+  @media (max-width:760px) {
+    .layout { flex-direction:column; }
+    aside { position:static; height:auto; width:100%; flex-direction:row; align-items:center; overflow-x:auto;
+            border-right:0; border-bottom:1px solid var(--line); padding:10px 12px; }
+    .side-logo { padding:0 10px 0 0; }
+    .side-foot { display:none; }
+    main { padding:24px 18px 60px; }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="logo"><img src="/assets/logo.svg" alt=""><a href="/">fetch<span>42</span></a>&nbsp;<span class="muted" style="font-weight:400">dashboard</span></div>
-    <button id="signout" class="ghost hidden">Sign out</button>
-  </header>
 
-  <div id="msg"></div>
-
-  <!-- signed out -->
-  <section id="auth" class="hidden">
-    <div class="auth-shell">
-      <div class="auth-card">
-        <img class="biglogo" src="/assets/logo.svg" alt="Fetch42">
-        <h1>Sign in to Fetch42</h1>
-        <p class="sub">Get your API key and start building.</p>
-        <div class="freeline">$3 free credit — no card required</div>
-        <button id="googleBtn" class="oauth-btn">
-          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Continue with Google
-        </button>
-        <button id="githubBtn" class="oauth-btn">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11.05 11.05 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.08 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.15c0 .3.21.66.8.55A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
-          Continue with GitHub
-        </button>
-        <div class="divider">or</div>
-        <form id="loginForm">
-          <input type="email" id="email" placeholder="you@company.com" required autocomplete="email">
-          <button type="submit" id="loginBtn" class="submit">Continue with email</button>
-        </form>
-        <p class="auth-foot">By continuing you agree to the <a href="/legal.html#terms">Terms</a> and <a href="/legal.html#privacy">Privacy Policy</a>.</p>
-      </div>
+<!-- signed out -->
+<section id="auth" class="hidden">
+  <div class="auth-shell">
+    <div class="auth-card">
+      <img class="biglogo" src="/assets/logo.svg" alt="Fetch42">
+      <h1>Sign in to Fetch42</h1>
+      <p class="asub">Get your API key and start building.</p>
+      <div class="freeline">$3 free credit — no card required</div>
+      <div id="msgAuth" style="min-height:20px;font-size:13.5px;margin-bottom:6px"></div>
+      <button id="googleBtn" class="oauth-btn">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <button id="githubBtn" class="oauth-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11.05 11.05 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.08 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.15c0 .3.21.66.8.55A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+        Continue with GitHub
+      </button>
+      <div class="divider">or</div>
+      <form id="loginForm">
+        <input type="email" id="email" placeholder="you@company.com" required autocomplete="email">
+        <button type="submit" id="loginBtn" class="btn auth-submit">Continue with email</button>
+      </form>
+      <p class="auth-foot">By continuing you agree to the <a href="/legal.html#terms">Terms</a> and <a href="/legal.html#privacy">Privacy Policy</a>.</p>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- signed in -->
-  <section id="app" class="hidden">
-    <h1>Balance</h1>
-    <div class="card">
-      <div class="balance" id="balance">—</div>
-      <p class="muted">Prepaid, pay per call. Credits never expire. Failed calls are never charged.</p>
-      <div class="row" style="margin-top:12px">
-        <button data-amt="5">Top up $5</button>
-        <button data-amt="20">Top up $20</button>
-        <button data-amt="50">Top up $50</button>
-      </div>
+<!-- signed in -->
+<div id="app" class="layout hidden">
+  <aside>
+    <a class="side-logo" href="/"><img src="/assets/logo.svg" alt="">fetch<span>42</span></a>
+    <button class="nav-item active" data-page="overview"><span class="ic">▦</span>Overview</button>
+    <button class="nav-item" data-page="keys"><span class="ic">⚿</span>API Keys</button>
+    <button class="nav-item" data-page="endpoints"><span class="ic">⌘</span>Endpoints</button>
+    <button class="nav-item" data-page="usage"><span class="ic">〰</span>Usage</button>
+    <button class="nav-item" data-page="account"><span class="ic">◍</span>Account</button>
+    <div class="side-foot">
+      <div class="email" id="userEmail">…</div>
+      <button class="nav-item" id="signout"><span class="ic">↩</span>Sign out</button>
     </div>
+  </aside>
 
-    <h2>API keys</h2>
-    <div class="card">
+  <main>
+    <div id="msg"></div>
+
+    <section data-sect="overview">
+      <h1>Overview</h1>
+      <p class="sub">Your balance and this month's usage at a glance.</p>
+      <div class="cards">
+        <div class="stat"><div class="label">Balance</div><div class="val" id="ovBalance">—</div><div class="hint">Credits never expire</div></div>
+        <div class="stat"><div class="label">Spend (30 days)</div><div class="val" id="ovSpend">—</div><div class="hint">Successful calls only</div></div>
+        <div class="stat"><div class="label">Requests (30 days)</div><div class="val" id="ovCalls">—</div><div class="hint" id="ovFail"></div></div>
+      </div>
+      <h2>Quick start</h2>
+      <pre class="quick" id="quickstart"><b>curl</b> "https://api.fetch42.ai/v1/tiktok/profile?handle=stoolpresidente" \
+  -H "Authorization: Bearer <b>fk_live_…</b>"</pre>
+      <p class="muted" style="font-size:13px;margin-top:10px">Create a key under <b>API Keys</b>, top up under <b>Account</b>.</p>
+    </section>
+
+    <section data-sect="keys" class="hidden">
+      <h1>API Keys</h1>
+      <p class="sub">Keys are shown once at creation — only a hash is stored. Default cap: $5/day per key.</p>
       <div id="newKey" class="hidden">
         <p><b>Your new API key — copy it now, it is shown only once:</b></p>
         <div class="keybox mono" id="newKeyValue"></div>
-        <button id="copyKey" class="ghost">Copy</button>
+        <button id="copyKey" class="btn ghost sm" style="margin-bottom:14px">Copy</button>
       </div>
-      <table id="keysTable"><thead><tr><th>Key</th><th>Name</th><th>Daily cap</th><th>Created</th><th></th></tr></thead><tbody></tbody></table>
-      <div class="row" style="margin-top:12px"><button id="createKey">Create key</button></div>
-    </div>
+      <div class="card">
+        <table id="keysTable"><thead><tr><th>Key</th><th>Name</th><th>Daily cap</th><th>Created</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+      <button id="createKey" class="btn">Create key ›</button>
+    </section>
 
-    <h2>Recent calls</h2>
-    <div class="card">
-      <table id="callsTable"><thead><tr><th>Time (UTC)</th><th>Endpoint</th><th>Provider</th><th>Price</th><th>ms</th><th></th></tr></thead><tbody></tbody></table>
-      <p class="muted" id="noCalls" style="margin-top:8px">No calls yet. Try:<br><code>curl "https://api.fetch42.ai/v1/tiktok/profile?handle=stoolpresidente" -H "Authorization: Bearer fk_live_…"</code></p>
-    </div>
-  </section>
+    <section data-sect="endpoints" class="hidden">
+      <h1>Endpoints</h1>
+      <p class="sub">Everything the API serves today, with live posted prices. Need another capability? <a href="mailto:laurent@fetch42.ai" style="text-decoration:underline">Tell us</a>.</p>
+      <div class="card">
+        <table id="endpointsTable"><thead><tr><th>Endpoint</th><th>Returns</th><th class="r">Price / call</th></tr></thead><tbody></tbody></table>
+      </div>
+    </section>
+
+    <section data-sect="usage" class="hidden">
+      <h1>Usage</h1>
+      <p class="sub">Your most recent API calls. Failed calls are never charged.</p>
+      <div class="card">
+        <table id="callsTable"><thead><tr><th>Time (UTC)</th><th>Endpoint</th><th>Provider</th><th class="r">Price</th><th class="r">ms</th><th></th></tr></thead><tbody></tbody></table>
+        <p class="muted hidden" id="noCalls" style="margin-top:10px;font-size:13.5px">No calls yet — create a key and run the quick-start curl from Overview.</p>
+      </div>
+    </section>
+
+    <section data-sect="account" class="hidden">
+      <h1>Account</h1>
+      <p class="sub" id="accEmail">…</p>
+      <div class="cards" style="max-width:640px">
+        <div class="stat"><div class="label">Balance</div><div class="val" id="accBalance">—</div><div class="hint">Prepaid · unused balance refundable anytime</div></div>
+      </div>
+      <h2>Top up</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" data-amt="5">Top up $5</button>
+        <button class="btn" data-amt="20">Top up $20</button>
+        <button class="btn" data-amt="50">Top up $50</button>
+      </div>
+      <p class="muted" style="font-size:13px;margin-top:10px">One-time card payment via Stripe. No subscription. Credits never expire.</p>
+      <h2>Billing history</h2>
+      <div class="card">
+        <table id="ledgerTable"><thead><tr><th>Date</th><th>Type</th><th class="r">Amount</th></tr></thead><tbody></tbody></table>
+      </div>
+    </section>
+  </main>
 </div>
 
 <script type="module">
@@ -142,13 +222,22 @@ const supabase = createClient(
 );
 const API = "https://gateway-production-2c1d.up.railway.app"; // temp until api.fetch42.ai cert issues
 const $ = (id) => document.getElementById(id);
-const msg = (t, cls = "") => { $("msg").textContent = t; $("msg").className = cls; };
+const msg = (t, cls = "") => { const el = $("app").classList.contains("hidden") ? $("msgAuth") : $("msg"); el.textContent = t; el.className = cls; };
+
+const ENDPOINT_DESC = {
+  "tiktok.get_profile": "TikTok profile with stats",
+  "tiktok.get_posts": "Recent posts with engagement stats",
+  "instagram.get_profile": "Instagram profile with stats",
+  "youtube.get_transcript": "Full timestamped transcript",
+  "serp.search": "Structured Google results",
+};
 
 async function sha256hex(s) {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/* ---------- auth ---------- */
 $("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("loginBtn").disabled = true;
@@ -160,9 +249,6 @@ $("loginForm").addEventListener("submit", async (e) => {
   $("loginBtn").disabled = false;
 });
 
-$("signout").addEventListener("click", async () => { await supabase.auth.signOut(); location.reload(); });
-
-// only offer providers actually enabled in Supabase (avoids raw 400 pages)
 const enabledProviders = await fetch("https://ubdleklnejuayewxbqev.supabase.co/auth/v1/settings", {
   headers: { apikey: "sb_publishable_GC7OJKnc43BQbjKRThE8KQ_HMFpp1q5" },
 }).then((r) => r.json()).then((j) => j.external ?? {}).catch(() => ({}));
@@ -173,14 +259,22 @@ for (const [btn, provider] of [["googleBtn", "google"], ["githubBtn", "github"]]
       msg(`${provider[0].toUpperCase() + provider.slice(1)} sign-in is coming soon — use email below for now.`, "bad");
       return;
     }
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: "https://fetch42.ai/dashboard/" },
-    });
+    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: "https://fetch42.ai/dashboard/" } });
     if (error) msg(`${provider} sign-in failed: ${error.message}`, "bad");
   });
 }
 
+$("signout").addEventListener("click", async () => { await supabase.auth.signOut(); location.href = "/dashboard/"; });
+
+/* ---------- nav ---------- */
+function show(page) {
+  document.querySelectorAll("[data-sect]").forEach((s) => s.classList.toggle("hidden", s.dataset.sect !== page));
+  document.querySelectorAll(".nav-item[data-page]").forEach((b) => b.classList.toggle("active", b.dataset.page === page));
+  history.replaceState(null, "", "#" + page);
+}
+document.querySelectorAll(".nav-item[data-page]").forEach((b) => b.addEventListener("click", () => show(b.dataset.page)));
+
+/* ---------- top-up ---------- */
 document.querySelectorAll("[data-amt]").forEach((b) =>
   b.addEventListener("click", async () => {
     b.disabled = true;
@@ -195,6 +289,7 @@ document.querySelectorAll("[data-amt]").forEach((b) =>
   }),
 );
 
+/* ---------- keys ---------- */
 $("createKey").addEventListener("click", async () => {
   $("createKey").disabled = true;
   const { data: { user } } = await supabase.auth.getUser();
@@ -206,14 +301,13 @@ $("createKey").addEventListener("click", async () => {
   else {
     $("newKeyValue").textContent = raw;
     $("newKey").classList.remove("hidden");
-    await refreshKeys();
+    await loadKeys();
   }
   $("createKey").disabled = false;
 });
-
 $("copyKey").addEventListener("click", () => navigator.clipboard.writeText($("newKeyValue").textContent));
 
-async function refreshKeys() {
+async function loadKeys() {
   const { data: keys } = await supabase.from("api_keys")
     .select("id,key_prefix,name,daily_cap_usd,created_at,revoked_at").order("created_at");
   const tb = $("keysTable").querySelector("tbody");
@@ -222,43 +316,84 @@ async function refreshKeys() {
     const tr = document.createElement("tr");
     tr.innerHTML = `<td class="mono">${k.key_prefix}…</td><td>${k.name}</td><td>$${Number(k.daily_cap_usd).toFixed(2)}/day</td>
       <td class="muted">${k.created_at.slice(0, 10)}</td>
-      <td>${k.revoked_at ? '<span class="bad">revoked</span>' : `<button class="ghost" data-revoke="${k.id}">Revoke</button>`}</td>`;
+      <td>${k.revoked_at ? '<span class="bad">revoked</span>' : `<button class="btn ghost sm" data-revoke="${k.id}">Revoke</button>`}</td>`;
     tb.appendChild(tr);
   }
   tb.querySelectorAll("[data-revoke]").forEach((b) =>
     b.addEventListener("click", async () => {
       if (!confirm("Revoke this key? Agents using it stop working immediately.")) return;
       await supabase.from("api_keys").update({ revoked_at: new Date().toISOString() }).eq("id", b.dataset.revoke);
-      refreshKeys();
+      loadKeys();
     }),
   );
 }
 
-async function refreshApp() {
+/* ---------- data loads ---------- */
+async function loadAll() {
   const { data: { user } } = await supabase.auth.getUser();
+  $("userEmail").textContent = user.email;
+  $("accEmail").textContent = user.email;
+
   const { data: bal } = await supabase.rpc("get_balance", { p_user_id: user.id });
-  $("balance").innerHTML = `$${Number(bal ?? 0).toFixed(3)} <small>USD</small>`;
-  await refreshKeys();
+  const balTxt = `$${Number(bal ?? 0).toFixed(3)}`;
+  $("ovBalance").textContent = balTxt;
+  $("accBalance").textContent = balTxt;
+
+  const since = new Date(Date.now() - 30 * 864e5).toISOString();
   const { data: calls } = await supabase.from("calls")
-    .select("ts,endpoint,provider,posted_price_usd,latency_ms,ok").order("ts", { ascending: false }).limit(20);
+    .select("ts,endpoint,provider,posted_price_usd,latency_ms,ok").gte("ts", since).order("ts", { ascending: false }).limit(200);
+  const okCalls = (calls ?? []).filter((c) => c.ok);
+  $("ovSpend").textContent = `$${okCalls.reduce((s, c) => s + Number(c.posted_price_usd ?? 0), 0).toFixed(3)}`;
+  $("ovCalls").textContent = String((calls ?? []).length);
+  const failed = (calls ?? []).length - okCalls.length;
+  $("ovFail").textContent = failed ? `${failed} failed (not charged)` : "All succeeded";
+
   const tb = $("callsTable").querySelector("tbody");
   tb.innerHTML = "";
-  for (const c of calls ?? []) {
+  for (const c of (calls ?? []).slice(0, 50)) {
     const tr = document.createElement("tr");
     tr.innerHTML = `<td class="muted mono">${c.ts.slice(0, 19).replace("T", " ")}</td><td class="mono">${c.endpoint}</td>
-      <td>${c.provider}</td><td class="mono">${c.posted_price_usd ? "$" + Number(c.posted_price_usd).toFixed(3) : "—"}</td>
-      <td class="mono">${c.latency_ms}</td><td class="${c.ok ? "ok" : "bad"}">${c.ok ? "ok" : "failed"}</td>`;
+      <td>${c.provider}</td><td class="mono r">${c.posted_price_usd ? "$" + Number(c.posted_price_usd).toFixed(3) : "—"}</td>
+      <td class="mono r">${c.latency_ms}</td><td class="${c.ok ? "ok" : "bad"}">${c.ok ? "ok" : "failed"}</td>`;
     tb.appendChild(tr);
   }
   $("noCalls").classList.toggle("hidden", (calls ?? []).length > 0);
+
+  await loadKeys();
+
+  const { data: prices } = await supabase.from("prices").select("endpoint,price_usd").eq("active", true).order("endpoint");
+  const eb = $("endpointsTable").querySelector("tbody");
+  eb.innerHTML = "";
+  for (const p of prices ?? []) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="mono">${p.endpoint}</td><td class="muted">${ENDPOINT_DESC[p.endpoint] ?? ""}</td>
+      <td class="mono r">$${Number(p.price_usd).toFixed(3)}</td>`;
+    eb.appendChild(tr);
+  }
+
+  const { data: ledger } = await supabase.from("ledger")
+    .select("created_at,amount_usd,reason").in("reason", ["topup", "grant", "refund"]).order("created_at", { ascending: false }).limit(20);
+  const lb = $("ledgerTable").querySelector("tbody");
+  lb.innerHTML = "";
+  for (const l of ledger ?? []) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="muted">${l.created_at.slice(0, 10)}</td><td>${l.reason}</td>
+      <td class="mono r ok">+$${Number(l.amount_usd).toFixed(2)}</td>`;
+    lb.appendChild(tr);
+  }
 }
 
+/* ---------- init ---------- */
 const { data: { session } } = await supabase.auth.getSession();
-if (new URLSearchParams(location.search).get("topup") === "success") msg("Top-up received — balance updates within a few seconds.", "ok");
 if (session) {
   $("app").classList.remove("hidden");
-  $("signout").classList.remove("hidden");
-  refreshApp();
+  const page = location.hash.slice(1);
+  if (["overview", "keys", "endpoints", "usage", "account"].includes(page)) show(page);
+  if (new URLSearchParams(location.search).get("topup") === "success") {
+    show("account");
+    msg("Top-up received — balance updates within a few seconds.", "ok");
+  }
+  loadAll();
 } else {
   $("auth").classList.remove("hidden");
 }
