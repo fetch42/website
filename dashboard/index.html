@@ -53,6 +53,11 @@
     <h1>Get your API key</h1>
     <p class="muted">Enter your email — we'll send a sign-in link. New accounts start with <b>$3 free credit</b> (~1,000 calls). No card required.</p>
     <div class="card">
+      <div class="row" style="margin-bottom:14px">
+        <button id="googleBtn" class="ghost" style="color:var(--text)">Continue with Google</button>
+        <button id="githubBtn" class="ghost" style="color:var(--text)">Continue with GitHub</button>
+      </div>
+      <p class="muted" style="margin-bottom:10px">or with email:</p>
       <form id="loginForm" class="row">
         <input type="email" id="email" placeholder="you@company.com" required autocomplete="email">
         <button type="submit" id="loginBtn">Send sign-in link</button>
@@ -120,6 +125,16 @@ $("loginForm").addEventListener("submit", async (e) => {
 });
 
 $("signout").addEventListener("click", async () => { await supabase.auth.signOut(); location.reload(); });
+
+for (const [btn, provider] of [["googleBtn", "google"], ["githubBtn", "github"]]) {
+  $(btn).addEventListener("click", async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: "https://fetch42.ai/dashboard/" },
+    });
+    if (error) msg(`${provider} sign-in not available yet: ${error.message}`, "bad");
+  });
+}
 
 document.querySelectorAll("[data-amt]").forEach((b) =>
   b.addEventListener("click", async () => {
