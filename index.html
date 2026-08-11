@@ -16,82 +16,184 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@fetch42ai">
 <style>
-  :root { --bg:#0b0d12; --panel:#12151d; --line:#1f2430; --text:#e8eaf0; --muted:#9aa3b2; --accent:#4f7cff; --green:#3ecf8e; }
+  :root {
+    --bg:#0a0c10; --bg2:#0e1118; --panel:#12151d; --line:#1f2430; --line2:#2a3242;
+    --text:#f2f4f8; --muted:#98a2b3; --accent:#4f7cff; --accent2:#7ca0ff; --green:#3ecf8e; --amber:#fbbf24;
+  }
   * { box-sizing:border-box; margin:0; }
-  body { background:var(--bg); color:var(--text); font:16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  .wrap { max-width:960px; margin:0 auto; padding:0 24px; }
-  header { padding:28px 0; display:flex; justify-content:space-between; align-items:center; }
-  .logo { font-weight:700; font-size:20px; letter-spacing:-.02em; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--text); font:16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1100px; margin:0 auto; padding:0 24px; }
+  a { color:var(--accent2); text-decoration:none; }
+
+  nav { position:sticky; top:0; z-index:10; background:rgba(10,12,16,.82); backdrop-filter:blur(12px); border-bottom:1px solid var(--line); }
+  .nav-in { display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .logo { display:flex; align-items:center; gap:10px; font-weight:700; font-size:19px; letter-spacing:-.02em; color:var(--text); }
+  .logo img { width:30px; height:30px; border-radius:7px; }
   .logo span { color:var(--accent); }
-  .hero { padding:64px 0 40px; }
-  h1 { font-size:44px; line-height:1.15; letter-spacing:-.03em; max-width:640px; }
-  .sub { color:var(--muted); font-size:19px; max-width:620px; margin:20px 0 32px; }
-  .cta { display:inline-block; background:var(--accent); color:#fff; text-decoration:none; font-weight:600; padding:14px 28px; border-radius:10px; font-size:17px; }
-  .cta:hover { filter:brightness(1.1); }
-  .note { color:var(--muted); font-size:14px; margin-top:12px; }
-  pre { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; overflow-x:auto; font:13.5px/1.55 ui-monospace, "SF Mono", Menlo, monospace; margin:48px 0; }
-  .c { color:#6b7280; } .k { color:#7dd3fc; } .s { color:#86efac; } .n { color:#fca5a5; }
-  h2 { font-size:24px; letter-spacing:-.02em; margin:56px 0 16px; }
-  table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
-  th, td { text-align:left; padding:12px 16px; border-bottom:1px solid var(--line); font-size:15px; }
-  th { color:var(--muted); font-weight:500; font-size:13px; text-transform:uppercase; letter-spacing:.05em; }
-  tr:last-child td { border-bottom:none; }
-  td.price { font-family:ui-monospace, Menlo, monospace; color:var(--green); }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:20px 0; }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; }
-  .card b { display:block; margin-bottom:6px; }
+  .nav-links { display:flex; gap:26px; align-items:center; font-size:14.5px; }
+  .nav-links a { color:var(--muted); }
+  .nav-links a:hover { color:var(--text); }
+  .btn { display:inline-block; background:var(--accent); color:#fff; font-weight:600; border:0; border-radius:9px; padding:11px 20px; font-size:15px; cursor:pointer; }
+  .btn:hover { filter:brightness(1.12); }
+  .btn.big { padding:14px 26px; font-size:16px; }
+  .btn.ghost { background:transparent; border:1px solid var(--line2); color:var(--text); font-weight:500; }
+
+  .hero { padding:84px 0 40px; display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; }
+  .kicker { display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--accent2); background:rgba(79,124,255,.1); border:1px solid rgba(79,124,255,.25); border-radius:999px; padding:5px 12px; margin-bottom:22px; }
+  h1 { font-size:52px; line-height:1.08; letter-spacing:-.035em; font-weight:800; }
+  h1 em { font-style:normal; color:var(--accent); }
+  .sub { color:var(--muted); font-size:19px; margin:20px 0 30px; max-width:480px; }
+  .hero-ctas { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .free-note { font-size:13.5px; color:var(--muted); margin-top:14px; }
+  .free-note b { color:var(--green); }
+
+  .term { background:#0b0e14; border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 24px 80px rgba(0,0,0,.45); }
+  .term-bar { display:flex; align-items:center; gap:6px; padding:11px 14px; border-bottom:1px solid var(--line); }
+  .dot { width:11px; height:11px; border-radius:50%; }
+  .term-tabs { margin-left:12px; display:flex; gap:4px; }
+  .ttab { font:12.5px/1 ui-monospace, "SF Mono", Menlo, monospace; color:var(--muted); padding:6px 10px; border-radius:6px; cursor:pointer; }
+  .ttab.active { background:var(--panel); color:var(--text); }
+  pre { margin:0; padding:18px; overflow-x:auto; font:13px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
+  .c{color:#5b6472} .k{color:#7dd3fc} .s{color:#86efac} .n{color:#fda4af} .p{color:#c4b5fd} .w{color:#e5e7eb}
+
+  section { padding:64px 0; }
+  .sec-kicker { color:var(--accent); font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.1em; margin-bottom:10px; }
+  h2 { font-size:34px; letter-spacing:-.025em; font-weight:800; margin-bottom:10px; }
+  .sec-sub { color:var(--muted); font-size:17px; max-width:640px; margin-bottom:36px; }
+
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .card { background:var(--bg2); border:1px solid var(--line); border-radius:14px; padding:22px; }
+  .card:hover { border-color:var(--line2); }
+  .card .ic { font-size:22px; margin-bottom:10px; }
+  .card b { display:block; font-size:16.5px; margin-bottom:6px; letter-spacing:-.01em; }
   .card p { color:var(--muted); font-size:14.5px; }
-  footer { border-top:1px solid var(--line); margin-top:72px; padding:32px 0 48px; color:var(--muted); font-size:14px; display:flex; gap:20px; flex-wrap:wrap; }
+  .card code { font-family:ui-monospace, Menlo, monospace; font-size:13px; color:var(--accent2); }
+
+  table.pricing { width:100%; border-collapse:collapse; background:var(--bg2); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .pricing th, .pricing td { text-align:left; padding:15px 20px; border-bottom:1px solid var(--line); font-size:15px; }
+  .pricing th { color:var(--muted); font-weight:500; font-size:12.5px; text-transform:uppercase; letter-spacing:.07em; background:var(--panel); }
+  .pricing tr:last-child td { border-bottom:none; }
+  .pricing code { font-family:ui-monospace, Menlo, monospace; font-size:14px; }
+  .price { font-family:ui-monospace, Menlo, monospace; color:var(--green); font-weight:600; }
+  .pill { display:inline-block; font-size:11.5px; font-weight:600; color:var(--amber); background:rgba(251,191,36,.1); border:1px solid rgba(251,191,36,.3); border-radius:999px; padding:2px 9px; margin-left:8px; vertical-align:middle; }
+
+  details { background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:18px 22px; margin-bottom:10px; }
+  summary { cursor:pointer; font-weight:600; font-size:15.5px; }
+  details p { color:var(--muted); font-size:14.5px; margin-top:10px; }
+
+  .cta-band { text-align:center; background:linear-gradient(180deg, rgba(79,124,255,.12), rgba(79,124,255,.02)); border:1px solid rgba(79,124,255,.25); border-radius:20px; padding:56px 24px; }
+  .cta-band h2 { margin-bottom:8px; }
+  .cta-band p { color:var(--muted); margin-bottom:26px; }
+
+  footer { border-top:1px solid var(--line); padding:36px 0 52px; color:var(--muted); font-size:14px; display:flex; gap:22px; flex-wrap:wrap; }
   footer a { color:var(--muted); }
-  @media (max-width:600px){ h1{font-size:32px} }
+  footer a:hover { color:var(--text); }
+
+  @media (max-width:900px) {
+    .hero { grid-template-columns:1fr; padding-top:48px; }
+    h1 { font-size:38px; }
+    .grid3 { grid-template-columns:1fr; }
+    .nav-links a:not(.btn) { display:none; }
+  }
 </style>
 </head>
 <body>
+
+<nav><div class="wrap nav-in">
+  <div class="logo"><img src="/assets/logo.svg" alt=""><div>fetch<span>42</span></div></div>
+  <div class="nav-links">
+    <a href="#capabilities">Capabilities</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+    <a href="/dashboard/">Dashboard</a>
+    <a class="btn" href="/dashboard/">Start for free</a>
+  </div>
+</div></nav>
+
 <div class="wrap">
-  <header>
-    <div class="logo" style="display:flex;align-items:center;gap:10px"><img src="/assets/logo.svg" alt="" style="width:34px;height:34px;border-radius:8px"><div>fetch<span>42</span></div></div>
-    <a class="cta" style="padding:10px 20px;font-size:15px" href="/dashboard/">Get your API key</a>
+  <header class="hero">
+    <div>
+      <div class="kicker">● &nbsp;Live now — social, transcripts &amp; search</div>
+      <h1>Every data API.<br><em>One key.</em></h1>
+      <p class="sub">Fetch42 is the data layer for AI agents — real-time public web &amp; social data through one API, one prepaid balance, priced per call.</p>
+      <div class="hero-ctas">
+        <a class="btn big" href="/dashboard/">Start for free</a>
+        <a class="btn big ghost" href="#pricing">View pricing</a>
+      </div>
+      <p class="free-note"><b>$3 free credit</b> on signup — about 1,000 calls. No card required. No subscription, ever.</p>
+    </div>
+    <div class="term">
+      <div class="term-bar">
+        <div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div>
+        <div class="term-tabs" id="tabs"></div>
+      </div>
+      <pre id="termbody"></pre>
+    </div>
   </header>
 
-  <section class="hero">
-    <h1>Every data API. One key.</h1>
-    <p class="sub">Fetch42 is the data layer for AI agents: real-time public web &amp; social data — profiles, posts, transcripts, search — through one API, one prepaid balance, priced per call.</p>
-    <a class="cta" href="/dashboard/">Get your API key</a>
-    <p class="note">Early access · prepaid top-ups from $5 · no subscription, ever</p>
+  <section id="capabilities">
+    <div class="sec-kicker">Capabilities</div>
+    <h2>Task-shaped endpoints your agent picks by itself</h2>
+    <p class="sec-sub">One normalized schema per capability, provider-agnostic. Multiple upstream sources behind every endpoint with automatic routing — one source having a bad day is our problem, not yours.</p>
+    <div class="grid3">
+      <div class="card"><div class="ic">📱</div><b>Social profiles &amp; posts</b><p><code>tiktok.get_profile</code> · <code>tiktok.get_posts</code> · <code>instagram.get_profile</code> — public profiles with stats, recent posts with engagement numbers, in clean JSON.</p></div>
+      <div class="card"><div class="ic">🎬</div><b>Transcripts</b><p><code>youtube.get_transcript</code> — full timestamped transcripts of videos and shorts, ready for RAG, summarization or clipping.</p></div>
+      <div class="card"><div class="ic">🔎</div><b>Search</b><p><code>serp.search</code> — structured Google results: positions, titles, URLs, snippets. The web-wide entry point for research agents.</p></div>
+    </div>
+    <p class="free-note" style="margin-top:18px">Public data only. Need another capability? <a href="mailto:laurent@fetch42.ai">Tell us what your agent needs</a> — curated endpoints, added on demand.</p>
   </section>
 
-  <pre><span class="c"># one key, task-shaped endpoints, cost on every response</span>
-$ curl https://api.fetch42.ai/v1/tiktok/profile?handle=stoolpresidente \
-    -H <span class="s">"Authorization: Bearer fk_live_…"</span>
+  <section>
+    <div class="sec-kicker">Built for agents</div>
+    <h2>Honest by design</h2>
+    <p class="sec-sub">Everything an autonomous agent (and its human) needs to trust a data dependency.</p>
+    <div class="grid3">
+      <div class="card"><div class="ic">💸</div><b>True pay-as-you-go</b><p>Top up once, spend per call. No plans, no tiers, no seats. Credits never expire.</p></div>
+      <div class="card"><div class="ic">🧾</div><b>Cost on every response</b><p>Each response carries <code>meta.cost_usd</code> and your remaining balance — agents stay cost-aware without extra calls.</p></div>
+      <div class="card"><div class="ic">🛡️</div><b>Failed calls cost $0</b><p>You are only charged when a call succeeds. Errors, timeouts and upstream failures are on us.</p></div>
+      <div class="card"><div class="ic">🔀</div><b>Automatic failover</b><p>Multiple suppliers per capability, health-tracked in real time. Requests route around failures automatically.</p></div>
+      <div class="card"><div class="ic">⛔</div><b>Budget-capped keys</b><p>Per-key daily budget caps by default — an agent in a loop can never surprise you with a bill.</p></div>
+      <div class="card"><div class="ic">🤖</div><b>MCP-native</b><p>REST today; a Model Context Protocol endpoint for Claude, Cursor and friends is next — one paste and your agent sees every tool.</p></div>
+    </div>
+  </section>
 
-{
-  <span class="k">"data"</span>: { <span class="k">"platform"</span>: <span class="s">"tiktok"</span>, <span class="k">"handle"</span>: <span class="s">"stoolpresidente"</span>, <span class="k">"followers"</span>: <span class="n">4700000</span>, … },
-  <span class="k">"meta"</span>: { <span class="k">"cost_usd"</span>: <span class="n">0.005</span>, <span class="k">"balance_usd"</span>: <span class="n">4.995</span>, <span class="k">"provider"</span>: <span class="s">"…"</span>, <span class="k">"cached"</span>: <span class="n">false</span> }
-}</pre>
+  <section id="pricing">
+    <div class="sec-kicker">Pricing</div>
+    <h2>Per call. Posted publicly. That's it.</h2>
+    <p class="sec-sub">No subscription, no minimums, no expiring credits. Top-ups from $5 by card. <span class="pill">$3 free on signup</span></p>
+    <table class="pricing">
+      <tr><th>Endpoint</th><th>Returns</th><th>Price / call</th></tr>
+      <tr><td><code>tiktok.get_profile</code></td><td>TikTok profile with stats</td><td class="price">$0.005</td></tr>
+      <tr><td><code>tiktok.get_posts</code></td><td>Recent posts with engagement stats</td><td class="price">$0.005</td></tr>
+      <tr><td><code>instagram.get_profile</code></td><td>Instagram profile with stats</td><td class="price">$0.005</td></tr>
+      <tr><td><code>youtube.get_transcript</code></td><td>Full timestamped transcript</td><td class="price">$0.005</td></tr>
+      <tr><td><code>serp.search</code></td><td>Structured Google results</td><td class="price">$0.003</td></tr>
+    </table>
+  </section>
 
-  <h2>Capabilities</h2>
-  <table>
-    <tr><th>Endpoint</th><th>What it returns</th><th>Price / call</th></tr>
-    <tr><td><code>tiktok.get_profile</code></td><td>TikTok profile with stats</td><td class="price">$0.005</td></tr>
-    <tr><td><code>tiktok.get_posts</code></td><td>Recent TikTok posts with stats</td><td class="price">$0.005</td></tr>
-    <tr><td><code>instagram.get_profile</code></td><td>Instagram profile with stats</td><td class="price">$0.005</td></tr>
-    <tr><td><code>youtube.get_transcript</code></td><td>Full video transcript, timestamped</td><td class="price">$0.005</td></tr>
-    <tr><td><code>serp.search</code></td><td>Google search results, structured</td><td class="price">$0.003</td></tr>
-  </table>
-  <p class="note">Public data only. More capabilities are added on demand — tell us what your agent needs.</p>
+  <section id="faq">
+    <div class="sec-kicker">FAQ</div>
+    <h2>Fair questions</h2>
+    <div style="max-width:760px">
+      <details><summary>Is there a subscription?</summary><p>No, and there never will be. You top up a balance; calls deduct from it. Credits never expire. When you stop using Fetch42, you stop paying — and your unused balance is refundable on request, any time.</p></details>
+      <details><summary>What data can Fetch42 access?</summary><p>Publicly available data only — public profiles, public posts, public video transcripts, search results. Structured into one clean schema per capability.</p></details>
+      <details><summary>What happens when a call fails?</summary><p>You pay nothing. We first retry through a different upstream source automatically; if everything fails, the call is free and logged. Only successful responses are ever charged.</p></details>
+      <details><summary>How do I plug this into my agent?</summary><p>Today: REST with your API key — one curl to try it. Next: an MCP endpoint, so Claude Code, Cursor or any MCP client discovers all Fetch42 tools with one config line.</p></details>
+      <details><summary>How is my agent kept from overspending?</summary><p>Prepaid balance (you can never go negative), per-key daily budget caps (default $5/day), and the exact cost plus remaining balance on every response.</p></details>
+    </div>
+  </section>
 
-  <h2>Built for agents, honest by design</h2>
-  <div class="grid">
-    <div class="card"><b>True pay-as-you-go</b><p>Top up once, spend per call. No plans, no tiers, no subscription. Credits never expire.</p></div>
-    <div class="card"><b>Failed calls cost $0</b><p>You are only charged when the call succeeds. Every response reports its exact cost and your balance.</p></div>
-    <div class="card"><b>Always answering</b><p>Multiple upstream sources per capability with automatic routing — one source having a bad day is our problem, not yours.</p></div>
-    <div class="card"><b>Budget-capped keys</b><p>Per-key daily budget caps by default, so an agent in a loop can never surprise you.</p></div>
-    <div class="card"><b>One schema per capability</b><p>Normalized, provider-agnostic responses. Task-shaped endpoint names your agent picks by itself.</p></div>
-    <div class="card"><b>MCP-native</b><p>REST today; a Model Context Protocol endpoint for Claude, Cursor and friends is on the way.</p></div>
-  </div>
+  <section>
+    <div class="cta-band">
+      <h2>Give your agent eyes on the real world</h2>
+      <p>Sign up, copy a key, make your first call in under a minute. $3 credit on us.</p>
+      <a class="btn big" href="/dashboard/">Get your API key</a>
+    </div>
+  </section>
 
   <footer>
-    <span>© 2026 Fetch42 — Laurent Boulin · Don’t panic.</span>
+    <span>© 2026 Fetch42 — Laurent Boulin · Don't panic.</span>
     <a href="mailto:laurent@fetch42.ai">laurent@fetch42.ai</a>
     <a href="/legal.html">Terms · Privacy · Refunds</a>
     <a href="https://x.com/fetch42ai">X</a>
@@ -99,6 +201,83 @@ $ curl https://api.fetch42.ai/v1/tiktok/profile?handle=stoolpresidente \
     <a href="https://github.com/fetch42">GitHub</a>
   </footer>
 </div>
-<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3118c88f274a4ce69428687589707360"}'></script><!-- End Cloudflare Web Analytics -->
+
+<script>
+const SNIPPETS = {
+  "tiktok": `<span class="c"># profile + stats, one call</span>
+$ curl "https://api.fetch42.ai/v1/tiktok/profile?handle=stoolpresidente" \\
+    -H <span class="s">"Authorization: Bearer fk_live_…"</span>
+
+{
+  <span class="k">"data"</span>: {
+    <span class="k">"platform"</span>: <span class="s">"tiktok"</span>,
+    <span class="k">"handle"</span>: <span class="s">"stoolpresidente"</span>,
+    <span class="k">"display_name"</span>: <span class="s">"Dave Portnoy"</span>,
+    <span class="k">"followers"</span>: <span class="n">4800000</span>,
+    <span class="k">"likes"</span>: <span class="n">227800000</span>,
+    <span class="k">"verified"</span>: <span class="p">true</span>
+  },
+  <span class="k">"meta"</span>: { <span class="k">"cost_usd"</span>: <span class="n">0.005</span>, <span class="k">"balance_usd"</span>: <span class="n">2.995</span>, <span class="k">"provider"</span>: <span class="s">"…"</span>, <span class="k">"cached"</span>: <span class="p">false</span> }
+}`,
+  "instagram": `<span class="c"># same schema, different platform</span>
+$ curl "https://api.fetch42.ai/v1/instagram/profile?handle=instagram" \\
+    -H <span class="s">"Authorization: Bearer fk_live_…"</span>
+
+{
+  <span class="k">"data"</span>: {
+    <span class="k">"platform"</span>: <span class="s">"instagram"</span>,
+    <span class="k">"handle"</span>: <span class="s">"instagram"</span>,
+    <span class="k">"followers"</span>: <span class="n">686000000</span>,
+    <span class="k">"posts"</span>: <span class="n">8112</span>,
+    <span class="k">"verified"</span>: <span class="p">true</span>
+  },
+  <span class="k">"meta"</span>: { <span class="k">"cost_usd"</span>: <span class="n">0.005</span>, <span class="k">"balance_usd"</span>: <span class="n">2.990</span>, <span class="k">"provider"</span>: <span class="s">"…"</span>, <span class="k">"cached"</span>: <span class="p">false</span> }
+}`,
+  "transcript": `<span class="c"># timestamped transcript, RAG-ready</span>
+$ curl "https://api.fetch42.ai/v1/youtube/transcript?url=youtu.be/jNQXAC9IVRw" \\
+    -H <span class="s">"Authorization: Bearer fk_live_…"</span>
+
+{
+  <span class="k">"data"</span>: {
+    <span class="k">"language"</span>: <span class="s">"en"</span>,
+    <span class="k">"segments"</span>: [
+      { <span class="k">"text"</span>: <span class="s">"All right, so here we are…"</span>, <span class="k">"start_ms"</span>: <span class="n">1200</span> },
+      <span class="c">… 47 segments …</span>
+    ],
+    <span class="k">"text"</span>: <span class="s">"All right, so here we are, in front of the…"</span>
+  },
+  <span class="k">"meta"</span>: { <span class="k">"cost_usd"</span>: <span class="n">0.005</span>, <span class="k">"balance_usd"</span>: <span class="n">2.985</span>, <span class="k">"provider"</span>: <span class="s">"…"</span>, <span class="k">"cached"</span>: <span class="p">false</span> }
+}`,
+  "search": `<span class="c"># structured Google results</span>
+$ curl "https://api.fetch42.ai/v1/serp/search?q=best+creator+tools" \\
+    -H <span class="s">"Authorization: Bearer fk_live_…"</span>
+
+{
+  <span class="k">"data"</span>: {
+    <span class="k">"query"</span>: <span class="s">"best creator tools"</span>,
+    <span class="k">"results"</span>: [
+      { <span class="k">"position"</span>: <span class="n">1</span>, <span class="k">"title"</span>: <span class="s">"…"</span>, <span class="k">"url"</span>: <span class="s">"https://…"</span>, <span class="k">"snippet"</span>: <span class="s">"…"</span> },
+      <span class="c">… 9 more …</span>
+    ]
+  },
+  <span class="k">"meta"</span>: { <span class="k">"cost_usd"</span>: <span class="n">0.003</span>, <span class="k">"balance_usd"</span>: <span class="n">2.982</span>, <span class="k">"provider"</span>: <span class="s">"…"</span>, <span class="k">"cached"</span>: <span class="p">false</span> }
+}`,
+};
+const tabs = document.getElementById("tabs");
+const body = document.getElementById("termbody");
+Object.keys(SNIPPETS).forEach((name, i) => {
+  const el = document.createElement("div");
+  el.className = "ttab" + (i === 0 ? " active" : "");
+  el.textContent = name;
+  el.onclick = () => {
+    document.querySelectorAll(".ttab").forEach((t) => t.classList.remove("active"));
+    el.classList.add("active");
+    body.innerHTML = SNIPPETS[name];
+  };
+  tabs.appendChild(el);
+});
+body.innerHTML = SNIPPETS["tiktok"];
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3118c88f274a4ce69428687589707360"}'></script>
 </body>
 </html>
