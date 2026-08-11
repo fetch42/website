@@ -162,13 +162,22 @@ $("loginForm").addEventListener("submit", async (e) => {
 
 $("signout").addEventListener("click", async () => { await supabase.auth.signOut(); location.reload(); });
 
+// only offer providers actually enabled in Supabase (avoids raw 400 pages)
+const enabledProviders = await fetch("https://ubdleklnejuayewxbqev.supabase.co/auth/v1/settings", {
+  headers: { apikey: "sb_publishable_GC7OJKnc43BQbjKRThE8KQ_HMFpp1q5" },
+}).then((r) => r.json()).then((j) => j.external ?? {}).catch(() => ({}));
+
 for (const [btn, provider] of [["googleBtn", "google"], ["githubBtn", "github"]]) {
   $(btn).addEventListener("click", async () => {
+    if (!enabledProviders[provider]) {
+      msg(`${provider[0].toUpperCase() + provider.slice(1)} sign-in is coming soon — use email below for now.`, "bad");
+      return;
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: "https://fetch42.ai/dashboard/" },
     });
-    if (error) msg(`${provider} sign-in not available yet: ${error.message}`, "bad");
+    if (error) msg(`${provider} sign-in failed: ${error.message}`, "bad");
   });
 }
 
