@@ -90,6 +90,34 @@
   .freeline { display:inline-flex; font-size:13px; color:var(--green); background:rgba(62,207,142,.08);
     border:1px solid rgba(62,207,142,.25); border-radius:999px; padding:4px 12px; margin-bottom:20px; }
 
+  /* ---------- onboarding wizard ---------- */
+  .blur { filter:blur(7px) saturate(.85); pointer-events:none; user-select:none; }
+  .wiz-overlay { position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .wiz-modal { width:100%; max-width:640px; background:var(--bg2); border:1px solid var(--line2); border-radius:16px; overflow:hidden; box-shadow:0 32px 90px rgba(0,0,0,.7); }
+  .wiz-bar { height:3px; background:var(--line); }
+  .wiz-bar div { height:100%; width:25%; background:var(--accent); transition:width .35s ease; }
+  .wiz-head { display:flex; align-items:center; gap:10px; padding:18px 24px; border-bottom:1px solid var(--line); font-weight:700; font-size:17px; }
+  .wiz-head img { width:24px; height:24px; }
+  .wiz-body { padding:24px; min-height:240px; }
+  .wiz-sub { color:var(--muted); font-size:14.5px; margin-bottom:16px; }
+  .agent-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
+  .agent-opt { display:flex; align-items:center; gap:10px; background:var(--bg); border:1px solid var(--line); border-radius:10px; color:var(--text); font-size:14.5px; font-weight:500; padding:12px 14px; }
+  .agent-opt:hover { border-color:var(--line2); }
+  .agent-opt.sel { border-color:var(--text); background:var(--panel); }
+  .agent-opt svg { width:20px; height:20px; fill:var(--muted); flex:none; }
+  .agent-opt img { width:20px; height:20px; border-radius:4px; filter:grayscale(1); opacity:.85; flex:none; }
+  .wiz-cmd { display:flex; align-items:center; justify-content:space-between; gap:12px; background:#000; border:1px solid var(--line2); border-radius:10px; padding:14px 16px; font-size:14.5px; }
+  .wiz-cmd button { flex:none; }
+  .wiz-foot { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-top:1px solid var(--line); }
+  .wiz-body input[type=email] { width:100%; background:#000; border:1px solid var(--line); border-radius:10px;
+    color:var(--text); font-size:15px; padding:12px 14px; margin-bottom:10px; text-align:center; font-family:inherit; }
+  .prompt-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .prompt-card { text-align:left; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:14px; color:var(--text); cursor:pointer; }
+  .prompt-card:hover { border-color:var(--line2); }
+  .prompt-card b { display:flex; align-items:center; gap:8px; font-size:14px; margin-bottom:4px; }
+  .prompt-card span { color:var(--muted); font-size:12.5px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  @media (max-width:640px) { .prompt-grid { grid-template-columns:1fr; } .agent-grid { grid-template-columns:1fr 1fr; } }
+
   @media (max-width:760px) {
     .layout { flex-direction:column; }
     aside { position:static; height:auto; width:100%; flex-direction:row; align-items:center; overflow-x:auto;
@@ -102,32 +130,72 @@
 </head>
 <body>
 
-<!-- signed out -->
-<section id="auth" class="hidden">
-  <div class="auth-shell">
-    <div class="auth-card">
-      <img class="biglogo" src="/assets/logo.svg" alt="Fetch42">
-      <h1>Sign in to Fetch42</h1>
-      <p class="asub">Get your API key and start building.</p>
-      <div class="freeline">$3 free credit — no card required</div>
-      <div id="msgAuth" style="min-height:20px;font-size:13.5px;margin-bottom:6px"></div>
-      <button id="googleBtn" class="oauth-btn">
-        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Continue with Google
-      </button>
-      <button id="githubBtn" class="oauth-btn">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11.05 11.05 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.08 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.15c0 .3.21.66.8.55A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
-        Continue with GitHub
-      </button>
-      <div class="divider">or</div>
-      <form id="loginForm">
-        <input type="email" id="email" placeholder="you@company.com" required autocomplete="email">
-        <button type="submit" id="loginBtn" class="btn auth-submit">Continue with email</button>
-      </form>
-      <p class="auth-foot">By continuing you agree to the <a href="/legal.html#terms">Terms</a> and <a href="/legal.html#privacy">Privacy Policy</a>.</p>
+<!-- onboarding wizard -->
+<div id="wiz" class="wiz-overlay hidden">
+  <div class="wiz-modal">
+    <div class="wiz-bar"><div id="wizFill"></div></div>
+    <div class="wiz-head"><img src="/assets/mark.svg" alt=""><span id="wizTitle">Which agent are you using?</span></div>
+    <div class="wiz-body">
+
+      <div data-wstep="1">
+        <p class="wiz-sub">Choose your agent for the best setup instructions.</p>
+        <div class="agent-grid">
+          <button class="agent-opt sel" data-harness="Claude Code" data-line="In Claude Code, just type:"><svg viewBox="0 0 24 24"><path d="M21 10.5h3v3h-3v3h-1.5v3H18v-3h-1.5v3H15v-3H9v3H7.5v-3H6v3H4.5v-3H3v-3H0v-3h3v-6h18Zm-15 0h1.5v-3H6Zm10.5 0H18v-3h-1.5z"/></svg>Claude Code</button>
+          <button class="agent-opt" data-harness="Codex" data-line="In Codex, send:"><svg viewBox="0 0 24 24"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>Codex</button>
+          <button class="agent-opt" data-harness="Cursor" data-line="In Cursor&#39;s agent chat, send:"><svg viewBox="0 0 24 24"><path d="M11.503.131 1.891 5.678a.84.84 0 0 0-.42.726v11.188c0 .3.162.575.42.724l9.609 5.55a1 1 0 0 0 .998 0l9.61-5.55a.84.84 0 0 0 .42-.724V6.404a.84.84 0 0 0-.42-.726L12.497.131a1.01 1.01 0 0 0-.996 0M2.657 6.338h18.55c.263 0 .43.287.297.515L12.23 22.918c-.062.107-.229.064-.229-.06V12.335a.59.59 0 0 0-.295-.51l-9.11-5.257c-.109-.063-.064-.23.061-.23"/></svg>Cursor</button>
+          <button class="agent-opt" data-harness="Gemini CLI" data-line="In Gemini CLI, send:"><svg viewBox="0 0 24 24"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/></svg>Gemini CLI</button>
+          <button class="agent-opt" data-harness="Hermes Agent" data-line="In your Hermes chat, send:"><img src="/agents/hermes.png" alt="">Hermes Agent</button>
+          <button class="agent-opt" data-harness="Clawbot" data-line="Message your Clawbot:"><img src="/agents/openclaw.svg" alt="">Clawbot</button>
+          <button class="agent-opt" data-harness="your agent" data-line="In your agent&#39;s chat, send:"><span style="width:20px;text-align:center">⋯</span>Other</button>
+        </div>
+      </div>
+
+      <div data-wstep="2" class="hidden">
+        <p class="wiz-sub">Setting up Fetch42 for <b id="wizHarness" style="color:var(--text)">Claude Code</b></p>
+        <p style="font-size:15px;margin-bottom:12px" id="wizLine">In your agent&#39;s chat, send:</p>
+        <div class="wiz-cmd"><span class="mono">set up https://fetch42.ai/SKILL.md</span><button id="wizCopyCmd" class="btn ghost sm">Copy</button></div>
+        <p class="muted" style="font-size:13px;margin-top:14px">Your agent reads that file and configures everything itself — endpoints, auth, error handling. Nothing to install.</p>
+      </div>
+
+      <div data-wstep="3" class="hidden" style="text-align:center;max-width:380px;margin:0 auto">
+        <p style="font-size:17px;font-weight:600;margin-bottom:4px">One last step.</p>
+        <p class="wiz-sub">Create your account to get your API key.</p>
+        <div class="freeline">$3 free credit — no card required</div>
+        <div id="msgAuth" style="min-height:20px;font-size:13.5px;margin-bottom:6px"></div>
+        <button id="googleBtn" class="oauth-btn">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continue with Google
+        </button>
+        <button id="githubBtn" class="oauth-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11.05 11.05 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.08 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.15c0 .3.21.66.8.55A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          Continue with GitHub
+        </button>
+        <div class="divider">or</div>
+        <form id="loginForm">
+          <input type="email" id="email" placeholder="you@company.com" required autocomplete="email">
+          <button type="submit" id="loginBtn" class="btn auth-submit">Continue with email</button>
+        </form>
+        <p class="auth-foot">By continuing you agree to the <a href="/legal.html#terms">Terms</a> and <a href="/legal.html#privacy">Privacy Policy</a>.</p>
+      </div>
+
+      <div data-wstep="4" class="hidden">
+        <p class="wiz-sub">Fetch42 is ready with your agent. Copy any example below and send it to your agent.</p>
+        <div class="prompt-grid">
+          <button class="prompt-card" data-prompt="Analyze the TikTok creator @khaby.lame using Fetch42 — pull their profile and recent posts, then summarize their engagement and what content performs best."><b>⎘ Analyze a creator</b><span>Profile + posts + engagement breakdown</span></button>
+          <button class="prompt-card" data-prompt="Use Fetch42 to fetch the transcript of this YouTube video and give me the 5 key takeaways: https://youtu.be/jNQXAC9IVRw"><b>⎘ Summarize any video</b><span>Full transcript, key takeaways</span></button>
+          <button class="prompt-card" data-prompt="Do a competitor research report using Fetch42. Ask me for my product, then pull Google results, news and Hacker News threads about the space, and summarize the landscape."><b>⎘ Research competitors</b><span>SERP + news + HN, summarized</span></button>
+          <button class="prompt-card" data-prompt="Analyze customer sentiment using Fetch42. Ask me for a brand, then pull recent Reddit posts and web mentions, and summarize what people love vs complain about."><b>⎘ Analyze sentiment</b><span>What people love vs complain about</span></button>
+        </div>
+        <p class="muted" id="promptCopied" style="font-size:13px;margin-top:12px;min-height:18px"></p>
+      </div>
+
+    </div>
+    <div class="wiz-foot">
+      <button id="wizBack" class="btn ghost sm">Skip</button>
+      <button id="wizNext" class="btn sm">Next →</button>
     </div>
   </div>
-</section>
+</div>
 
 <!-- signed in -->
 <div id="app" class="layout hidden">
@@ -222,7 +290,7 @@ const supabase = createClient(
 );
 const API = "https://gateway-production-2c1d.up.railway.app"; // temp until api.fetch42.ai cert issues
 const $ = (id) => document.getElementById(id);
-const msg = (t, cls = "") => { const el = $("app").classList.contains("hidden") ? $("msgAuth") : $("msg"); el.textContent = t; el.className = cls; };
+const msg = (t, cls = "") => { const el = !$("wiz").classList.contains("hidden") ? $("msgAuth") : $("msg"); el.textContent = t; el.className = cls; };
 
 const ENDPOINT_DESC = {
   "tiktok.get_profile": "TikTok profile with stats",
@@ -383,21 +451,72 @@ async function loadAll() {
   }
 }
 
+/* ---------- onboarding wizard ---------- */
+const WIZ_TITLES = { 1: "Which agent are you using?", 2: "Set up the Fetch42 skill", 3: "Create your account", 4: "Try it out" };
+let wizStep = 1;
+
+function wizGo(n) {
+  wizStep = n;
+  document.querySelectorAll("[data-wstep]").forEach((d) => d.classList.toggle("hidden", Number(d.dataset.wstep) !== n));
+  $("wizFill").style.width = (n / 4) * 100 + "%";
+  $("wizTitle").textContent = WIZ_TITLES[n];
+  $("wizBack").style.visibility = n === 4 ? "hidden" : "visible";
+  $("wizBack").textContent = n === 1 ? "Skip" : "Back";
+  $("wizNext").classList.toggle("hidden", n === 3);
+  $("wizNext").textContent = n === 4 ? "Done ✓" : "Next →";
+}
+function wizOpen(n) { $("wiz").classList.remove("hidden"); $("app").classList.add("blur"); wizGo(n); }
+function wizFinish() {
+  localStorage.setItem("f42_onb_done", "1");
+  $("wiz").classList.add("hidden");
+  $("app").classList.remove("blur");
+}
+$("wizBack").addEventListener("click", () => wizGo(wizStep === 1 ? 3 : wizStep - 1));
+$("wizNext").addEventListener("click", () => {
+  if (wizStep === 4) wizFinish();
+  else wizGo(wizStep + 1);
+});
+document.querySelectorAll(".agent-opt").forEach((b) =>
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".agent-opt").forEach((x) => x.classList.remove("sel"));
+    b.classList.add("sel");
+    localStorage.setItem("f42_harness", b.dataset.harness);
+    $("wizHarness").textContent = b.dataset.harness;
+    $("wizLine").textContent = b.dataset.line;
+  }),
+);
+$("wizCopyCmd").addEventListener("click", () => {
+  navigator.clipboard.writeText("set up https://fetch42.ai/SKILL.md");
+  $("wizCopyCmd").textContent = "Copied ✓";
+  setTimeout(() => { $("wizCopyCmd").textContent = "Copy"; }, 1800);
+});
+document.querySelectorAll(".prompt-card").forEach((b) =>
+  b.addEventListener("click", () => {
+    navigator.clipboard.writeText(b.dataset.prompt);
+    $("promptCopied").textContent = "Copied — paste it into " + (localStorage.getItem("f42_harness") || "your agent") + ".";
+  }),
+);
+
 /* ---------- init ---------- */
 const { data: { session } } = await supabase.auth.getSession();
+$("app").classList.remove("hidden");
 if (session) {
-  $("app").classList.remove("hidden");
   const page = location.hash.slice(1);
   if (["overview", "keys", "endpoints", "usage", "account"].includes(page)) show(page);
   if (new URLSearchParams(location.search).get("topup") === "success") {
     show("account");
     msg("Top-up received — balance updates within a few seconds.", "ok");
   }
+  if (!localStorage.getItem("f42_onb_done")) {
+    const { count } = await supabase.from("api_keys").select("id", { count: "exact", head: true });
+    if ((count ?? 0) > 0) localStorage.setItem("f42_onb_done", "1");
+    else wizOpen(4);
+  }
   loadAll();
 } else {
-  $("auth").classList.remove("hidden");
+  wizOpen(1);
 }
-supabase.auth.onAuthStateChange((_e, s) => { if (s && $("app").classList.contains("hidden")) location.reload(); });
+supabase.auth.onAuthStateChange((_e, s) => { if (s && !$("wiz").classList.contains("hidden") && wizStep === 3) location.reload(); });
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3118c88f274a4ce69428687589707360"}'></script>
 </body>
