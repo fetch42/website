@@ -281,6 +281,7 @@
     <button class="nav-item" data-page="usage"><span class="ic">〰</span>Usage</button>
     <button class="nav-item" data-page="account"><span class="ic">◍</span>Account</button>
     <div class="side-foot">
+      <button class="nav-item" id="contactUs"><span class="ic">✉</span>Contact us</button>
       <div class="email" id="userEmail">…</div>
       <button class="nav-item" id="signout"><span class="ic">↩</span>Sign out</button>
     </div>
@@ -423,6 +424,10 @@ for (const [btn, provider] of [["googleBtn", "google"], ["githubBtn", "github"]]
 }
 
 $("signout").addEventListener("click", async () => { await supabase.auth.signOut(); location.href = "/"; });
+$("contactUs").addEventListener("click", () => {
+  window.f42ShowChat();
+  window.$crisp.push(["do", "chat:open"]);
+});
 
 /* ---------- nav ---------- */
 function show(page) {
