@@ -1,0 +1,13 @@
+# Fetch42
+
+> The data layer for AI agents: real-time public web & social data (TikTok, Instagram,
+> YouTube, X, Reddit, Threads, Bluesky, Google search/news/maps/shopping/images,
+> Hacker News, Wikipedia, weather) through one API key and one prepaid USD balance,
+> priced per call. Normalized JSON, automatic failover, cost on every response,
+> failed calls never charged, no subscriptions.
+
+- [Agent setup skill](https://fetch42.ai/SKILL.md): paste-ready instructions for an agent to integrate Fetch42
+- [API reference](https://fetch42.ai/docs/): all endpoints, params, prices
+- [Dashboard](https://fetch42.ai/dashboard/): create an API key ($3 free credit, no card)
+- Base URL: https://api.fetch42.ai — auth: `Authorization: Bearer <key>`
+- Contact: laurent@fetch42.ai
