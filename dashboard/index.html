@@ -467,6 +467,7 @@ async function loadAll() {
   const { data: { user } } = await supabase.auth.getUser();
   $("userEmail").textContent = user.email;
   $("accEmail").textContent = user.email;
+  try { window.$crisp.push(["set", "user:email", [user.email]]); } catch {}
 
   const { data: bal } = await supabase.rpc("get_balance", { p_user_id: user.id });
   const balTxt = `$${Number(bal ?? 0).toFixed(3)}`;
@@ -696,5 +697,7 @@ if (session) {
 supabase.auth.onAuthStateChange((_e, s) => { if (s && !$("wiz").classList.contains("hidden") && wizStep === 3) location.reload(); });
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3118c88f274a4ce69428687589707360"}'></script>
+<!-- Crisp founder chat -->
+<script>window.$crisp=[];window.CRISP_WEBSITE_ID="05f9d78c-3f1e-42ec-afc2-d43b12c4b07e";(function(){var d=document,s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
 </body>
 </html>
