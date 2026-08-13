@@ -243,6 +243,19 @@
       </div>
 
       <div data-wstep="5" class="hidden">
+        <p class="wiz-sub">One quick question - where did you find Fetch42?</p>
+        <div class="agent-grid" id="srcGrid">
+          <button class="agent-opt" data-src="x">𝕏&nbsp; X / Twitter</button>
+          <button class="agent-opt" data-src="hackernews"><span style="width:20px;text-align:center;color:#F0652F;font-weight:700">Y</span>Hacker News</button>
+          <button class="agent-opt" data-src="reddit"><span style="width:20px;text-align:center">👽</span>Reddit</button>
+          <button class="agent-opt" data-src="search"><span style="width:20px;text-align:center">🔎</span>Google search</button>
+          <button class="agent-opt" data-src="friend"><span style="width:20px;text-align:center">💬</span>A friend</button>
+          <button class="agent-opt" data-src="my-agent"><span style="width:20px;text-align:center">🤖</span>My agent found it</button>
+          <button class="agent-opt" data-src="other"><span style="width:20px;text-align:center">⋯</span>Other</button>
+        </div>
+      </div>
+
+      <div data-wstep="6" class="hidden">
         <p class="wiz-sub">Fetch42 is ready. Pick an example — this is what your agent will do with it.</p>
         <div class="chip-row">
           <button class="chip sel" data-p="0">Analyze a subreddit</button>
@@ -548,18 +561,18 @@ async function loadAll() {
 }
 
 /* ---------- onboarding wizard ---------- */
-const WIZ_TITLES = { 1: "Which agent are you using?", 2: "Set up the Fetch42 skill", 3: "Create your account", 4: "Your API key", 5: "Try it out" };
+const WIZ_TITLES = { 1: "Which agent are you using?", 2: "Set up the Fetch42 skill", 3: "Create your account", 4: "Your API key", 5: "One last thing", 6: "Try it out" };
 let wizStep = 1;
 
 function wizGo(n) {
   wizStep = n;
   document.querySelectorAll("[data-wstep]").forEach((d) => d.classList.toggle("hidden", Number(d.dataset.wstep) !== n));
-  $("wizFill").style.width = (n / 5) * 100 + "%";
+  $("wizFill").style.width = (n / 6) * 100 + "%";
   $("wizTitle").textContent = WIZ_TITLES[n];
   $("wizBack").style.visibility = n === 4 ? "hidden" : "visible";
   $("wizBack").textContent = n === 1 ? "Skip" : "Back";
   $("wizNext").classList.toggle("hidden", n === 3);
-  $("wizNext").textContent = n === 5 ? "Done ✓" : "Next →";
+  $("wizNext").textContent = n === 6 ? "Done ✓" : "Next →";
   if (n === 4) { wizLoadSeq(); wizCreateKey(); }
 }
 
@@ -611,7 +624,7 @@ function wizFinish() {
 }
 $("wizBack").addEventListener("click", () => wizGo(wizStep === 1 ? 3 : wizStep - 1));
 $("wizNext").addEventListener("click", () => {
-  if (wizStep === 5) wizFinish();
+  if (wizStep === 6) wizFinish();
   else wizGo(wizStep + 1);
 });
 function pickHarness(name, line) {
@@ -697,6 +710,19 @@ function renderPrompt(i) {
     }
   }, 16);
 }
+document.querySelectorAll("#srcGrid .agent-opt").forEach((b) =>
+  b.addEventListener("click", async () => {
+    document.querySelectorAll("#srcGrid .agent-opt").forEach((x) => x.classList.remove("sel"));
+    b.classList.add("sel");
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from("signup_surveys").upsert({
+        user_id: user.id, source: b.dataset.src, harness: localStorage.getItem("f42_harness") || null,
+      });
+    } catch {}
+    setTimeout(() => wizGo(6), 300);
+  }),
+);
 document.querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => renderPrompt(Number(b.dataset.p))));
 renderPrompt(0);
 $("copyPrompt").addEventListener("click", () => {
@@ -735,6 +761,6 @@ window.$crisp=[["do","chat:hide"]];window.CRISP_WEBSITE_ID="05f9d78c-3f1e-42ec-a
 window.$crisp.push(["on","session:loaded",function(){if(!window.f42ChatAllowed){window.$crisp.push(["do","chat:hide"]);}}]);
 window.$crisp.push(["on","message:received",function(){if(!window.f42ChatAllowed){window.$crisp.push(["do","chat:hide"]);}}]);
 window.f42ShowChat=function(){window.f42ChatAllowed=true;try{window.$crisp.push(["do","chat:show"]);}catch(e){}};
-window.f42StartNudge=function(){try{if(!localStorage.getItem("f42_nudged")){setTimeout(function(){if(!localStorage.getItem("f42_nudged")){localStorage.setItem("f42_nudged","1");window.$crisp.push(["do","message:show",["text","\ud83d\udc4b I'm Laurent, I built Fetch42. Stuck on anything? I reply fast."]]);}},15000);}}catch(e){}};</script>
+window.f42StartNudge=function(){try{if(!localStorage.getItem("f42_nudged")){setTimeout(function(){if(!localStorage.getItem("f42_nudged")){localStorage.setItem("f42_nudged","1");window.$crisp.push(["do","message:show",["text","\ud83d\udc4b I'm Laurent, I built Fetch42. What are you building with it? Genuinely curious - I reply fast."]]);}},15000);}}catch(e){}};</script>
 </body>
 </html>
