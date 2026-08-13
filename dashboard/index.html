@@ -8,16 +8,16 @@
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#050506; --bg2:#0a0a0c; --panel:#101014; --line:#1e1e24; --line2:#2c2c34;
-          --text:#f5f5f7; --muted:#9a9aa3; --accent:#E5484D; --green:#3ecf8e; --red:#f87171; }
+  :root { --bg:#FAF9F5; --bg2:#FFFFFF; --panel:#F1EFE9; --line:#E8E4DC; --line2:#D6D0C4;
+          --text:#1A1A1E; --muted:#6E6E76; --accent:#C96442; --green:#0E9F5B; --red:#dc2626; }
   * { box-sizing:border-box; margin:0; }
-  body { background:var(--bg); color:var(--text); font:15px/1.6 "Inter", -apple-system, sans-serif; -webkit-font-smoothing:antialiased; }
+  body { background:var(--bg); color:var(--text); font:15px/1.6 "Geist", -apple-system, sans-serif; -webkit-font-smoothing:antialiased; }
   a { color:var(--text); text-decoration:none; }
   button { font-family:inherit; cursor:pointer; }
   .hidden { display:none !important; }
-  code, .mono { font-family:ui-monospace, "SF Mono", Menlo, monospace; }
+  code, .mono { font-family:"Geist Mono", ui-monospace, "SF Mono", Menlo, monospace; }
   .muted { color:var(--muted); }
   .ok { color:var(--green); } .bad { color:var(--red); }
 
@@ -26,11 +26,11 @@
   aside { position:sticky; top:0; height:100vh; width:230px; flex:none; display:flex; flex-direction:column;
           border-right:1px solid var(--line); padding:20px 14px; }
   .side-logo { display:flex; align-items:center; gap:9px; font-weight:700; font-size:17px; letter-spacing:-.02em; padding:4px 10px 18px; }
-  .side-logo img { width:26px; height:26px; border-radius:6px; }
+  .side-logo img { width:28px; height:28px; }
   .side-logo span { color:var(--accent); }
   .nav-item { display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:none; border:0;
               color:var(--muted); font-size:14.5px; font-weight:500; padding:9px 10px; border-radius:8px; margin-bottom:2px; }
-  .nav-item:hover { color:var(--text); background:var(--bg2); }
+  .nav-item:hover { color:var(--text); background:var(--panel); }
   .nav-item.active { color:var(--text); background:var(--panel); font-weight:600; }
   .nav-item .ic { width:18px; text-align:center; opacity:.9; }
   .side-foot { margin-top:auto; border-top:1px solid var(--line); padding-top:14px; }
@@ -53,49 +53,49 @@
   tr:last-child td { border-bottom:none; }
   td.r, th.r { text-align:right; }
 
-  .btn { display:inline-flex; align-items:center; gap:7px; background:var(--text); color:#000; border:0;
+  .btn { display:inline-flex; align-items:center; gap:7px; background:var(--text); color:#fff; border:0;
          border-radius:999px; font-size:14.5px; font-weight:600; padding:10px 20px; }
-  .btn:hover { background:#fff; }
+  .btn:hover { background:#000; }
   .btn.ghost { background:transparent; border:1px solid var(--line2); color:var(--text); font-weight:500; }
   .btn.ghost:hover { border-color:var(--muted); background:var(--bg2); }
   .btn.sm { padding:7px 14px; font-size:13.5px; }
   .btn:disabled { opacity:.5; cursor:default; }
   #msg { min-height:22px; font-size:14px; margin-bottom:8px; }
 
-  .keybox { background:#000; border:1px solid var(--accent); border-radius:10px; padding:14px; margin:10px 0; word-break:break-all; }
-  pre.quick { background:#000; border:1px solid var(--line); border-radius:12px; padding:16px; overflow-x:auto;
-              font:12.5px/1.65 ui-monospace, Menlo, monospace; color:var(--muted); }
+  .keybox { background:#000; color:#fff; border:0; border-radius:10px; padding:14px; margin:10px 0; word-break:break-all; }
+  pre.quick { background:#000; border:0; border-radius:12px; padding:16px; overflow-x:auto;
+              font:12.5px/1.65 "Geist Mono", ui-monospace, Menlo, monospace; color:#9a9aa3; }
   pre.quick b { color:var(--text); font-weight:500; }
 
   /* ---------- auth (standard centered card) ---------- */
   .auth-shell { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
   .auth-card { width:100%; max-width:400px; background:var(--bg2); border:1px solid var(--line);
-    border-radius:16px; padding:36px 32px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,.6); }
+    border-radius:16px; padding:36px 32px; text-align:center; box-shadow:0 24px 80px rgba(26,26,30,.18); }
   .auth-card .biglogo { width:52px; height:52px; border-radius:12px; margin:0 auto 18px; display:block; }
   .auth-card h1 { font-size:22px; margin:0 0 6px; }
   .auth-card .asub { color:var(--muted); font-size:14px; margin-bottom:22px; }
   .oauth-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
-    background:#000; border:1px solid var(--line); border-radius:10px; color:var(--text);
+    background:#fff; border:1px solid var(--line2); border-radius:10px; color:var(--text);
     font-size:15px; font-weight:500; padding:12px 16px; margin-bottom:10px; }
-  .oauth-btn:hover { border-color:var(--line2); background:var(--bg2); }
+  .oauth-btn:hover { border-color:var(--muted); }
   .oauth-btn svg { width:18px; height:18px; flex:none; }
   .divider { display:flex; align-items:center; gap:12px; color:var(--muted); font-size:12px;
     margin:18px 0; text-transform:uppercase; letter-spacing:.06em; }
   .divider::before, .divider::after { content:""; flex:1; height:1px; background:var(--line); }
-  .auth-card input[type=email] { width:100%; background:#000; border:1px solid var(--line); border-radius:10px;
+  .auth-card input[type=email] { width:100%; background:#fff; border:1px solid var(--line2); border-radius:10px;
     color:var(--text); font-size:15px; padding:12px 14px; margin-bottom:10px; text-align:center; font-family:inherit; }
   .auth-submit { width:100%; justify-content:center; border-radius:10px; padding:12px 16px; font-size:15px; }
   .auth-foot { color:var(--muted); font-size:12.5px; margin-top:20px; }
   .auth-foot a { color:var(--muted); text-decoration:underline; }
-  .freeline { display:inline-flex; font-size:13px; color:var(--green); background:rgba(62,207,142,.08);
-    border:1px solid rgba(62,207,142,.25); border-radius:999px; padding:4px 12px; margin-bottom:20px; }
+  .freeline { display:inline-flex; font-size:13px; color:var(--green); background:rgba(14,159,91,.07);
+    border:1px solid rgba(14,159,91,.25); border-radius:999px; padding:4px 12px; margin-bottom:20px; }
 
   /* ---------- onboarding wizard ---------- */
   .spin { width:34px; height:34px; border-radius:50%; border:3px solid var(--line2); border-top-color:var(--accent); animation:spin 1s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
   .blur { filter:blur(7px) saturate(.85); pointer-events:none; user-select:none; }
-  .wiz-overlay { position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; padding:20px; }
-  .wiz-modal { width:100%; max-width:640px; background:var(--bg2); border:1px solid var(--line2); border-radius:16px; overflow:hidden; box-shadow:0 32px 90px rgba(0,0,0,.7); }
+  .wiz-overlay { position:fixed; inset:0; z-index:50; background:rgba(26,26,30,.22); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .wiz-modal { width:100%; max-width:640px; background:var(--bg2); border:1px solid var(--line2); border-radius:16px; overflow:hidden; box-shadow:0 32px 90px rgba(26,26,30,.22); }
   .wiz-bar { height:3px; background:var(--line); }
   .wiz-bar div { height:100%; width:25%; background:var(--accent); transition:width .35s ease; }
   .wiz-head { display:flex; align-items:center; gap:10px; padding:18px 24px; border-bottom:1px solid var(--line); font-weight:700; font-size:17px; }
@@ -103,19 +103,19 @@
   .wiz-body { padding:24px; min-height:240px; }
   .wiz-sub { color:var(--muted); font-size:14.5px; margin-bottom:16px; }
   .agent-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
-  .agent-opt { display:flex; align-items:center; gap:10px; background:var(--bg); border:1px solid var(--line); border-radius:10px; color:var(--text); font-size:14.5px; font-weight:500; padding:12px 14px; }
-  .agent-opt:hover { border-color:var(--line2); }
+  .agent-opt { display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); border-radius:10px; color:var(--text); font-size:14.5px; font-weight:500; padding:12px 14px; }
+  .agent-opt:hover { border-color:var(--muted); }
   .agent-opt.sel { border-color:var(--text); background:var(--panel); }
   .agent-opt svg { width:20px; height:20px; fill:var(--muted); flex:none; }
   .agent-opt img { width:20px; height:20px; border-radius:4px; filter:grayscale(1); opacity:.85; flex:none; }
-  .wiz-cmd { display:flex; align-items:center; justify-content:space-between; gap:12px; background:#000; border:1px solid var(--line2); border-radius:10px; padding:14px 16px; font-size:14.5px; }
-  .wiz-cmd button { flex:none; }
+  .wiz-cmd { display:flex; align-items:center; justify-content:space-between; gap:12px; background:#000; color:#fff; border:0; border-radius:10px; padding:14px 16px; font-size:14.5px; }
+  .wiz-cmd button { flex:none; border-color:#3a3a42; color:#fff; background:transparent; }
   .wiz-foot { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-top:1px solid var(--line); }
-  .wiz-body input[type=email] { width:100%; background:#000; border:1px solid var(--line); border-radius:10px;
+  .wiz-body input[type=email] { width:100%; background:#fff; border:1px solid var(--line2); border-radius:10px;
     color:var(--text); font-size:15px; padding:12px 14px; margin-bottom:10px; text-align:center; font-family:inherit; }
   .prompt-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .prompt-card { text-align:left; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:14px; color:var(--text); cursor:pointer; }
-  .prompt-card:hover { border-color:var(--line2); }
+  .prompt-card { text-align:left; background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; color:var(--text); cursor:pointer; }
+  .prompt-card:hover { border-color:var(--muted); }
   .prompt-card b { display:flex; align-items:center; gap:8px; font-size:14px; margin-bottom:4px; }
   .prompt-card span { color:var(--muted); font-size:12.5px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   @media (max-width:640px) { .prompt-grid { grid-template-columns:1fr; } .agent-grid { grid-template-columns:1fr 1fr; } }
@@ -216,7 +216,7 @@
 <!-- signed in -->
 <div id="app" class="layout hidden">
   <aside>
-    <a class="side-logo" href="/"><img src="/assets/logo.svg" alt="">fetch<span>42</span></a>
+    <a class="side-logo" href="/"><img src="/assets/mark.svg" alt="">fetch<span>42</span></a>
     <button class="nav-item active" data-page="overview"><span class="ic">▦</span>Overview</button>
     <button class="nav-item" data-page="keys"><span class="ic">⚿</span>API Keys</button>
     <button class="nav-item" data-page="endpoints"><span class="ic">⌘</span>Endpoints</button>
