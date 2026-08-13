@@ -579,7 +579,7 @@ function wizGo(n) {
   $("wizBack").style.visibility = n === 4 ? "hidden" : "visible";
   $("wizBack").textContent = n === 1 ? "Skip" : "Back";
   $("wizNext").classList.toggle("hidden", n === 3);
-  $("wizNext").textContent = n === 6 ? "Done ✓" : "Next →";
+  $("wizNext").textContent = n === 6 ? "Finish" : "Next →";
   $("wizSkip").classList.toggle("hidden", n !== 5);
   if (n === 4) { wizLoadSeq(); wizCreateKey(); }
 }
@@ -729,7 +729,6 @@ document.querySelectorAll("#srcGrid .agent-opt").forEach((b) =>
         user_id: user.id, source: b.dataset.src, harness: localStorage.getItem("f42_harness") || null,
       });
     } catch {}
-    setTimeout(() => wizGo(6), 300);
   }),
 );
 document.querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => renderPrompt(Number(b.dataset.p))));
