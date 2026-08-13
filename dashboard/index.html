@@ -99,7 +99,7 @@
   .wiz-bar { height:3px; background:var(--line); }
   .wiz-bar div { height:100%; width:25%; background:var(--accent); transition:width .35s ease; }
   .wiz-head { display:flex; align-items:center; gap:10px; padding:18px 24px; border-bottom:1px solid var(--line); font-weight:700; font-size:17px; }
-  .wiz-head img { width:24px; height:24px; }
+  .wiz-head img { width:30px; height:30px; }
   .wiz-body { padding:24px; min-height:240px; }
   .wiz-sub { color:var(--muted); font-size:14.5px; margin-bottom:16px; }
   .agent-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
@@ -117,7 +117,9 @@
   .agent-menu button:hover { background:var(--panel); }
   .agent-menu svg { width:18px; height:18px; fill:var(--muted); flex:none; }
   .wiz-cmd { display:flex; align-items:center; justify-content:space-between; gap:12px; background:#000; color:#fff; border:0; border-radius:10px; padding:14px 16px; font-size:14.5px; }
-  .wiz-cmd button { flex:none; border-color:#3a3a42; color:#fff; background:transparent; }
+  .cmd-copy { flex:none; background:none; border:0; color:rgba(255,255,255,.8); padding:4px 2px; }
+  .cmd-copy:hover { color:#fff; }
+  .cmd-copy svg { width:19px; height:19px; display:block; }
   .wiz-foot { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-top:1px solid var(--line); }
   .wiz-body input[type=email] { width:100%; background:#fff; border:1px solid var(--line2); border-radius:10px;
     color:var(--text); font-size:15px; padding:12px 14px; margin-bottom:10px; text-align:center; font-family:inherit; }
@@ -174,7 +176,7 @@
       <div data-wstep="2" class="hidden">
         <p class="wiz-sub">Setting up Fetch42 for <b id="wizHarness" style="color:var(--text)">Claude Code</b></p>
         <p style="font-size:15px;margin-bottom:12px" id="wizLine">In your agent&#39;s chat, send:</p>
-        <div class="wiz-cmd"><span class="mono">set up https://fetch42.ai/SKILL.md</span><button id="wizCopyCmd" class="btn ghost sm">Copy</button></div>
+        <div class="wiz-cmd"><span class="mono">set up https://fetch42.ai/SKILL.md</span><button id="wizCopyCmd" class="cmd-copy" aria-label="Copy"><svg id="wizCopyIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4.5A2.5 2.5 0 0 1 2 12.5v-8A2.5 2.5 0 0 1 4.5 2h8A2.5 2.5 0 0 1 15 4.5V5"/></svg><span id="wizCopyCheck" class="hidden" style="color:var(--green);font-size:16px">✓</span></button></div>
         <p class="muted" style="font-size:13px;margin-top:14px">Your agent reads that file and configures everything itself — endpoints, auth, error handling. Nothing to install.</p>
       </div>
 
@@ -594,8 +596,9 @@ $("authToggle").addEventListener("click", (e) => {
 
 $("wizCopyCmd").addEventListener("click", () => {
   navigator.clipboard.writeText("set up https://fetch42.ai/SKILL.md");
-  $("wizCopyCmd").textContent = "Copied ✓";
-  setTimeout(() => { $("wizCopyCmd").textContent = "Copy"; }, 1800);
+  $("wizCopyIcon").classList.add("hidden");
+  $("wizCopyCheck").classList.remove("hidden");
+  setTimeout(() => { $("wizCopyIcon").classList.remove("hidden"); $("wizCopyCheck").classList.add("hidden"); }, 1800);
 });
 document.querySelectorAll(".prompt-card").forEach((b) =>
   b.addEventListener("click", () => {
