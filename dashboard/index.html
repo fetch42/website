@@ -123,9 +123,9 @@
   .wiz-foot { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-top:1px solid var(--line); }
   .wiz-body input[type=email] { width:100%; background:#fff; border:1px solid var(--line2); border-radius:10px;
     color:var(--text); font-size:15px; padding:12px 14px; margin-bottom:10px; text-align:center; font-family:inherit; }
-  .chip-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .chip-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
   .chip { background:#fff; border:1px solid var(--line2); border-radius:999px; color:var(--muted);
-    font-size:13px; font-weight:500; padding:7px 14px; }
+    font-size:12.5px; font-weight:500; padding:8px 10px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .chip:hover { border-color:var(--muted); color:var(--text); }
   .chip.sel { background:var(--text); border-color:var(--text); color:#fff; }
   .mini-agent { background:#0d0d10; border-radius:14px; overflow:hidden; text-align:left; }
@@ -146,7 +146,7 @@
   .prompt-card:hover { border-color:var(--muted); }
   .prompt-card b { display:flex; align-items:center; gap:8px; font-size:14px; margin-bottom:4px; }
   .prompt-card span { color:var(--muted); font-size:12.5px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  @media (max-width:640px) { .prompt-grid { grid-template-columns:1fr; } .agent-grid { grid-template-columns:1fr 1fr; } }
+  @media (max-width:640px) { .prompt-grid { grid-template-columns:1fr; } .agent-grid { grid-template-columns:1fr 1fr; } .chip-row { grid-template-columns:1fr 1fr; } }
 
   @media (max-width:760px) {
     .layout { flex-direction:column; }
@@ -237,10 +237,12 @@
       <div data-wstep="5" class="hidden">
         <p class="wiz-sub">Fetch42 is ready. Pick an example — this is what your agent will do with it.</p>
         <div class="chip-row">
-          <button class="chip sel" data-p="0">Analyze a creator</button>
-          <button class="chip" data-p="1">Summarize a video</button>
-          <button class="chip" data-p="2">Research competitors</button>
-          <button class="chip" data-p="3">Analyze sentiment</button>
+          <button class="chip sel" data-p="0">Analyze a subreddit</button>
+          <button class="chip" data-p="1">Summarize a YouTube video</button>
+          <button class="chip" data-p="2">Top of Hacker News</button>
+          <button class="chip" data-p="3">Audit a TikTok creator</button>
+          <button class="chip" data-p="4">Check a Google ranking</button>
+          <button class="chip" data-p="5">TikTok vs Instagram</button>
         </div>
         <div class="mini-agent">
           <div class="ma-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="ma-title">your agent + fetch42</span></div>
@@ -628,18 +630,18 @@ $("wizCopyCmd").addEventListener("click", () => {
   setTimeout(() => { $("wizCopyIcon").classList.remove("hidden"); $("wizCopyCheck").classList.add("hidden"); }, 1800);
 });
 const PROMPTS = [
-  { text: "Analyze the TikTok creator @khaby.lame using Fetch42 — pull their profile and recent posts, then summarize their engagement and what content performs best.",
-    tool: "tiktok.get_profile + tiktok.get_posts", cost: "$0.010",
-    answer: "162M followers · ~18M avg views · silent-comedy replies outperform everything else." },
+  { text: "Use Fetch42 to pull this week\u2019s top posts from r/LocalLLaMA and summarize the recurring themes and biggest complaints.",
+    tool: "reddit.get_posts", cost: "$0.005" },
   { text: "Use Fetch42 to fetch the transcript of this YouTube video and give me the 5 key takeaways: https://youtu.be/jNQXAC9IVRw",
-    tool: "youtube.get_transcript", cost: "$0.005",
-    answer: "Transcript fetched — it\u2019s \u201cMe at the zoo\u201d. Takeaway 1: it all started with elephants…" },
-  { text: "Do a competitor research report using Fetch42. Ask me for my product, then pull Google results, news and Hacker News threads about the space, and summarize the landscape.",
-    tool: "serp.search + serp.news + hn.search", cost: "$0.007",
-    answer: "What\u2019s your product? I\u2019ll map competitors, funding news and HN sentiment from there." },
-  { text: "Analyze customer sentiment using Fetch42. Ask me for a brand, then pull recent Reddit posts and web mentions, and summarize what people love vs complain about.",
-    tool: "reddit.get_posts + serp.news", cost: "$0.008",
-    answer: "Which brand? I\u2019ll pull the latest threads and split love vs complaints with quotes." },
+    tool: "youtube.get_transcript", cost: "$0.005" },
+  { text: "Use Fetch42 to find this week\u2019s top Hacker News stories about AI agents and give me the 5 most upvoted takes.",
+    tool: "hn.search", cost: "$0.001" },
+  { text: "Audit the TikTok creator @khaby.lame with Fetch42 \u2014 pull their profile and recent posts, then summarize engagement and what content performs best.",
+    tool: "tiktok.get_profile + tiktok.get_posts", cost: "$0.010" },
+  { text: "Use Fetch42 to search Google for \u201cbest data api for ai agents\u201d and tell me who ranks in the top 5, with positions and snippets.",
+    tool: "serp.search", cost: "$0.003" },
+  { text: "Use Fetch42 to compare @mrbeast on TikTok vs Instagram \u2014 followers, engagement per post, and which platform is stronger right now.",
+    tool: "tiktok.get_profile + instagram.get_profile", cost: "$0.010" },
 ];
 let curPrompt = 0;
 let typeTimer = null;
