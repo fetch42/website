@@ -199,6 +199,13 @@
       </div>
 
       <div data-wstep="3" class="hidden" style="text-align:center;max-width:380px;margin:0 auto">
+        <div id="authSent" class="hidden" style="padding:14px 0">
+          <div style="font-size:42px;margin-bottom:10px">📬</div>
+          <p style="font-size:19px;font-weight:700;margin-bottom:8px">Check your email</p>
+          <p class="wiz-sub" style="margin-bottom:10px">We sent a sign-in link to <b id="sentEmail" style="color:var(--text)"></b><br>Click it and you&rsquo;ll land right back here, signed in.</p>
+          <p class="muted" style="font-size:13px">Nothing after a minute? Check spam, or <a href="#" id="sentRetry" style="color:var(--text);font-weight:600">use a different email</a>.</p>
+        </div>
+        <div id="authForms">
         <p style="font-size:17px;font-weight:600;margin-bottom:4px" id="wizAuthHead">One last step.</p>
         <p class="wiz-sub" id="wizAuthSub">Create your account to get your API key.</p>
         <div class="freeline" id="wizFreeline">$1 free credit — no card required</div>
@@ -218,6 +225,7 @@
         </form>
         <p class="auth-foot">By continuing you agree to the <a href="/legal.html#terms">Terms</a> and <a href="/legal.html#privacy">Privacy Policy</a>.</p>
         <p class="auth-foot" style="margin-top:10px"><a href="#" id="authToggle" style="color:var(--text);font-weight:600">Already have an account? Log in</a></p>
+        </div>
       </div>
 
       <div data-wstep="4" class="hidden">
@@ -375,12 +383,28 @@ async function sha256hex(s) {
 $("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("loginBtn").disabled = true;
+  const email = $("email").value;
   const { error } = await supabase.auth.signInWithOtp({
-    email: $("email").value,
+    email,
     options: { emailRedirectTo: "https://fetch42.ai/dashboard/" },
   });
-  msg(error ? `Could not send link: ${error.message}` : "Check your inbox — sign-in link sent.", error ? "bad" : "ok");
+  if (error) {
+    msg(`Could not send link: ${error.message}`, "bad");
+  } else {
+    $("sentEmail").textContent = email;
+    $("authForms").classList.add("hidden");
+    $("authSent").classList.remove("hidden");
+    $("wizTitle").textContent = "Check your email";
+  }
   $("loginBtn").disabled = false;
+});
+document.addEventListener("click", (e) => {
+  if (e.target.id === "sentRetry") {
+    e.preventDefault();
+    $("authSent").classList.add("hidden");
+    $("authForms").classList.remove("hidden");
+    $("wizTitle").textContent = WIZ_TITLES[3];
+  }
 });
 
 const enabledProviders = await fetch("https://ubdleklnejuayewxbqev.supabase.co/auth/v1/settings", {
