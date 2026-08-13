@@ -701,8 +701,11 @@ supabase.auth.onAuthStateChange((_e, s) => { if (s && !$("wiz").classList.contai
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3118c88f274a4ce69428687589707360"}'></script>
 <!-- Crisp founder chat -->
-<script>window.$crisp=[["do","chat:hide"]];window.CRISP_WEBSITE_ID="05f9d78c-3f1e-42ec-afc2-d43b12c4b07e";(function(){var d=document,s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();
-window.f42ShowChat=function(){try{window.$crisp.push(["do","chat:show"]);}catch(e){}};
+<script>window.f42ChatAllowed=false;
+window.$crisp=[["do","chat:hide"]];window.CRISP_WEBSITE_ID="05f9d78c-3f1e-42ec-afc2-d43b12c4b07e";(function(){var d=document,s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();
+window.$crisp.push(["on","session:loaded",function(){if(!window.f42ChatAllowed){window.$crisp.push(["do","chat:hide"]);}}]);
+window.$crisp.push(["on","message:received",function(){if(!window.f42ChatAllowed){window.$crisp.push(["do","chat:hide"]);}}]);
+window.f42ShowChat=function(){window.f42ChatAllowed=true;try{window.$crisp.push(["do","chat:show"]);}catch(e){}};
 window.f42StartNudge=function(){try{if(!localStorage.getItem("f42_nudged")){setTimeout(function(){if(!localStorage.getItem("f42_nudged")){localStorage.setItem("f42_nudged","1");window.$crisp.push(["do","message:show",["text","\ud83d\udc4b I'm Laurent, I built Fetch42. Stuck on anything? I reply fast."]]);}},15000);}}catch(e){}};</script>
 </body>
 </html>
