@@ -132,7 +132,7 @@
   .ma-head { display:flex; align-items:center; gap:6px; border-bottom:1px solid #26262c; padding:10px 14px; }
   .ma-head .dot { width:9px; height:9px; border-radius:50%; }
   .ma-title { margin-left:8px; font-family:"Geist Mono", monospace; font-size:11.5px; color:#8a8a93; }
-  .ma-body { display:flex; flex-direction:column; gap:9px; padding:14px; }
+  .ma-body { display:flex; flex-direction:column; gap:9px; padding:14px; min-height:120px; }
   .ma-user { align-self:flex-end; max-width:92%; background:#1f1f26; color:#fff; border-radius:14px 14px 4px 14px;
     padding:9px 13px; font-size:13px; line-height:1.5; }
   .ma-tool { display:flex; align-items:center; gap:8px; font-family:"Geist Mono", monospace; font-size:11.5px; color:#8a8a93; }
@@ -246,8 +246,7 @@
           <div class="ma-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="ma-title">your agent + fetch42</span></div>
           <div class="ma-body">
             <div class="ma-user" id="maPrompt"></div>
-            <div class="ma-tool"><span class="ma-dot"></span><span id="maTool"></span><span class="ma-cost" id="maCost"></span><span class="ma-cost">✓</span></div>
-            <div class="ma-answer" id="maAnswer"></div>
+            <div class="ma-tool" id="maToolRow"><span class="ma-dot"></span><span id="maTool"></span><span class="ma-cost" id="maCost"></span><span class="ma-cost">✓</span></div>
           </div>
           <div class="ma-foot">every response: { data, meta: { cost_usd, balance_usd, provider } } · failed calls cost $0</div>
         </div>
@@ -643,14 +642,26 @@ const PROMPTS = [
     answer: "Which brand? I\u2019ll pull the latest threads and split love vs complaints with quotes." },
 ];
 let curPrompt = 0;
+let typeTimer = null;
 function renderPrompt(i) {
   curPrompt = i;
   const p = PROMPTS[i];
-  $("maPrompt").textContent = p.text;
+  clearInterval(typeTimer);
   $("maTool").textContent = p.tool;
   $("maCost").textContent = p.cost;
-  $("maAnswer").textContent = p.answer;
+  $("maToolRow").style.visibility = "hidden";
   document.querySelectorAll(".chip").forEach((x) => x.classList.toggle("sel", Number(x.dataset.p) === i));
+  let n = 0;
+  typeTimer = setInterval(() => {
+    n += 2;
+    if (n >= p.text.length) {
+      clearInterval(typeTimer);
+      $("maPrompt").textContent = p.text;
+      $("maToolRow").style.visibility = "visible";
+    } else {
+      $("maPrompt").textContent = p.text.slice(0, n) + "_";
+    }
+  }, 16);
 }
 document.querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => renderPrompt(Number(b.dataset.p))));
 renderPrompt(0);
