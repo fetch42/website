@@ -570,8 +570,9 @@ $("wizCopyKey").addEventListener("click", () => {
   setTimeout(() => { $("wizCopyKey").textContent = "Copy key"; }, 1800);
 });
 function wizOpen(n) { $("wiz").classList.remove("hidden"); $("app").classList.add("blur"); wizGo(n); }
+let onbDoneKey = "f42_onb_done";
 function wizFinish() {
-  localStorage.setItem("f42_onb_done", "1");
+  localStorage.setItem(onbDoneKey, "1");
   $("wiz").classList.add("hidden");
   $("app").classList.remove("blur");
 }
@@ -669,9 +670,10 @@ if (session) {
     show("account");
     msg("Top-up received — balance updates within a few seconds.", "ok");
   }
-  if (!localStorage.getItem("f42_onb_done")) {
+  onbDoneKey = "f42_onb_done_" + session.user.id;
+  if (!localStorage.getItem(onbDoneKey)) {
     const { count } = await supabase.from("api_keys").select("id", { count: "exact", head: true });
-    if ((count ?? 0) > 0) localStorage.setItem("f42_onb_done", "1");
+    if ((count ?? 0) > 0) localStorage.setItem(onbDoneKey, "1");
     else wizOpen(4);
   }
   loadAll();
