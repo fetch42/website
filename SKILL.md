@@ -30,6 +30,16 @@ Example:
 
 ## Step 3 — endpoints
 
+170+ endpoints are live. Discover ALL of them machine-readably (no key needed):
+
+    GET https://api.fetch42.ai/v1/catalog
+
+Returns every endpoint with path, params and price. The core set below returns
+normalized JSON; catalog endpoints return the supplier's shape under `data`
+with the same `meta` billing block. Same auth, same balance, same rules.
+
+### Core endpoints
+
 | Endpoint | Params | Returns | Price/call |
 |---|---|---|---|
 | /v1/tiktok/profile | handle | TikTok profile: followers, likes, verified, bio | $0.005 |

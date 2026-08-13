@@ -7,7 +7,8 @@
 > failed calls never charged, no subscriptions.
 
 - [Agent setup skill](https://fetch42.ai/SKILL.md): paste-ready instructions for an agent to integrate Fetch42
-- [API reference](https://fetch42.ai/docs/): all endpoints, params, prices
+- [API reference](https://fetch42.ai/docs/): core endpoints, params, prices
+- [Live catalog](https://api.fetch42.ai/v1/catalog): machine-readable list of all 170+ live endpoints
 - [Dashboard](https://fetch42.ai/dashboard/): create an API key ($1 free credit, no card)
 - Base URL: https://api.fetch42.ai — auth: `Authorization: Bearer <key>`
 - Contact: laurent@fetch42.ai
