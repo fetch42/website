@@ -123,6 +123,24 @@
   .wiz-foot { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-top:1px solid var(--line); }
   .wiz-body input[type=email] { width:100%; background:#fff; border:1px solid var(--line2); border-radius:10px;
     color:var(--text); font-size:15px; padding:12px 14px; margin-bottom:10px; text-align:center; font-family:inherit; }
+  .chip-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .chip { background:#fff; border:1px solid var(--line2); border-radius:999px; color:var(--muted);
+    font-size:13px; font-weight:500; padding:7px 14px; }
+  .chip:hover { border-color:var(--muted); color:var(--text); }
+  .chip.sel { background:var(--text); border-color:var(--text); color:#fff; }
+  .mini-agent { background:#0d0d10; border-radius:14px; overflow:hidden; text-align:left; }
+  .ma-head { display:flex; align-items:center; gap:6px; border-bottom:1px solid #26262c; padding:10px 14px; }
+  .ma-head .dot { width:9px; height:9px; border-radius:50%; }
+  .ma-title { margin-left:8px; font-family:"Geist Mono", monospace; font-size:11.5px; color:#8a8a93; }
+  .ma-body { display:flex; flex-direction:column; gap:9px; padding:14px; }
+  .ma-user { align-self:flex-end; max-width:92%; background:#1f1f26; color:#fff; border-radius:14px 14px 4px 14px;
+    padding:9px 13px; font-size:13px; line-height:1.5; }
+  .ma-tool { display:flex; align-items:center; gap:8px; font-family:"Geist Mono", monospace; font-size:11.5px; color:#8a8a93; }
+  .ma-dot { width:7px; height:7px; border-radius:50%; background:#3ecf8e; flex:none; }
+  .ma-cost { color:#3ecf8e; }
+  .ma-answer { align-self:flex-start; max-width:92%; border:1px solid #2a2a32; color:#fff; border-radius:14px 14px 14px 4px;
+    padding:9px 13px; font-size:13px; line-height:1.5; }
+  .ma-foot { border-top:1px solid #26262c; padding:8px 14px; font-family:"Geist Mono", monospace; font-size:10.5px; color:#8a8a93; }
   .prompt-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .prompt-card { text-align:left; background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; color:var(--text); cursor:pointer; }
   .prompt-card:hover { border-color:var(--muted); }
@@ -217,14 +235,23 @@
       </div>
 
       <div data-wstep="5" class="hidden">
-        <p class="wiz-sub">Fetch42 is ready with your agent. Copy any example below and send it to your agent.</p>
-        <div class="prompt-grid">
-          <button class="prompt-card" data-prompt="Analyze the TikTok creator @khaby.lame using Fetch42 — pull their profile and recent posts, then summarize their engagement and what content performs best."><b>⎘ Analyze a creator</b><span>Profile + posts + engagement breakdown</span></button>
-          <button class="prompt-card" data-prompt="Use Fetch42 to fetch the transcript of this YouTube video and give me the 5 key takeaways: https://youtu.be/jNQXAC9IVRw"><b>⎘ Summarize any video</b><span>Full transcript, key takeaways</span></button>
-          <button class="prompt-card" data-prompt="Do a competitor research report using Fetch42. Ask me for my product, then pull Google results, news and Hacker News threads about the space, and summarize the landscape."><b>⎘ Research competitors</b><span>SERP + news + HN, summarized</span></button>
-          <button class="prompt-card" data-prompt="Analyze customer sentiment using Fetch42. Ask me for a brand, then pull recent Reddit posts and web mentions, and summarize what people love vs complain about."><b>⎘ Analyze sentiment</b><span>What people love vs complain about</span></button>
+        <p class="wiz-sub">Fetch42 is ready. Pick an example — this is what your agent will do with it.</p>
+        <div class="chip-row">
+          <button class="chip sel" data-p="0">Analyze a creator</button>
+          <button class="chip" data-p="1">Summarize a video</button>
+          <button class="chip" data-p="2">Research competitors</button>
+          <button class="chip" data-p="3">Analyze sentiment</button>
         </div>
-        <p class="muted" id="promptCopied" style="font-size:13px;margin-top:12px;min-height:18px"></p>
+        <div class="mini-agent">
+          <div class="ma-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="ma-title">your agent + fetch42</span></div>
+          <div class="ma-body">
+            <div class="ma-user" id="maPrompt"></div>
+            <div class="ma-tool"><span class="ma-dot"></span><span id="maTool"></span><span class="ma-cost" id="maCost"></span><span class="ma-cost">✓</span></div>
+            <div class="ma-answer" id="maAnswer"></div>
+          </div>
+          <div class="ma-foot">every response: { data, meta: { cost_usd, balance_usd, provider } } · failed calls cost $0</div>
+        </div>
+        <button id="copyPrompt" class="btn" style="width:100%;justify-content:center;margin-top:12px">Copy this prompt</button>
       </div>
 
     </div>
@@ -600,12 +627,37 @@ $("wizCopyCmd").addEventListener("click", () => {
   $("wizCopyCheck").classList.remove("hidden");
   setTimeout(() => { $("wizCopyIcon").classList.remove("hidden"); $("wizCopyCheck").classList.add("hidden"); }, 1800);
 });
-document.querySelectorAll(".prompt-card").forEach((b) =>
-  b.addEventListener("click", () => {
-    navigator.clipboard.writeText(b.dataset.prompt);
-    $("promptCopied").textContent = "Copied — paste it into " + (localStorage.getItem("f42_harness") || "your agent") + ".";
-  }),
-);
+const PROMPTS = [
+  { text: "Analyze the TikTok creator @khaby.lame using Fetch42 — pull their profile and recent posts, then summarize their engagement and what content performs best.",
+    tool: "tiktok.get_profile + tiktok.get_posts", cost: "$0.010",
+    answer: "162M followers · ~18M avg views · silent-comedy replies outperform everything else." },
+  { text: "Use Fetch42 to fetch the transcript of this YouTube video and give me the 5 key takeaways: https://youtu.be/jNQXAC9IVRw",
+    tool: "youtube.get_transcript", cost: "$0.005",
+    answer: "Transcript fetched — it\u2019s \u201cMe at the zoo\u201d. Takeaway 1: it all started with elephants…" },
+  { text: "Do a competitor research report using Fetch42. Ask me for my product, then pull Google results, news and Hacker News threads about the space, and summarize the landscape.",
+    tool: "serp.search + serp.news + hn.search", cost: "$0.007",
+    answer: "What\u2019s your product? I\u2019ll map competitors, funding news and HN sentiment from there." },
+  { text: "Analyze customer sentiment using Fetch42. Ask me for a brand, then pull recent Reddit posts and web mentions, and summarize what people love vs complain about.",
+    tool: "reddit.get_posts + serp.news", cost: "$0.008",
+    answer: "Which brand? I\u2019ll pull the latest threads and split love vs complaints with quotes." },
+];
+let curPrompt = 0;
+function renderPrompt(i) {
+  curPrompt = i;
+  const p = PROMPTS[i];
+  $("maPrompt").textContent = p.text;
+  $("maTool").textContent = p.tool;
+  $("maCost").textContent = p.cost;
+  $("maAnswer").textContent = p.answer;
+  document.querySelectorAll(".chip").forEach((x) => x.classList.toggle("sel", Number(x.dataset.p) === i));
+}
+document.querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => renderPrompt(Number(b.dataset.p))));
+renderPrompt(0);
+$("copyPrompt").addEventListener("click", () => {
+  navigator.clipboard.writeText(PROMPTS[curPrompt].text);
+  $("copyPrompt").textContent = "Copied — paste it into " + (localStorage.getItem("f42_harness") || "your agent") + " ✓";
+  setTimeout(() => { $("copyPrompt").textContent = "Copy this prompt"; }, 2200);
+});
 
 /* ---------- init ---------- */
 const { data: { session } } = await supabase.auth.getSession();
