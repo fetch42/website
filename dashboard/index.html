@@ -179,6 +179,14 @@
       </div>
 
       <div data-wstep="4" class="hidden">
+        <p class="wiz-sub"><span class="ok">✓ $3.00 free credit added to your balance.</span> Here is your API key — give it to your agent to authorize Fetch42 calls.</p>
+        <div id="wizKeyMsg" class="bad" style="min-height:0;font-size:13.5px"></div>
+        <div class="keybox mono" id="wizKeyValue" style="margin-top:4px">creating your key…</div>
+        <button id="wizCopyKey" class="btn ghost sm">Copy key</button>
+        <p class="muted" style="font-size:13px;margin-top:14px">Shown only once — we store just a hash. Daily budget cap: $5 by default. Your agent will ask for it after reading SKILL.md.</p>
+      </div>
+
+      <div data-wstep="5" class="hidden">
         <p class="wiz-sub">Fetch42 is ready with your agent. Copy any example below and send it to your agent.</p>
         <div class="prompt-grid">
           <button class="prompt-card" data-prompt="Analyze the TikTok creator @khaby.lame using Fetch42 — pull their profile and recent posts, then summarize their engagement and what content performs best."><b>⎘ Analyze a creator</b><span>Profile + posts + engagement breakdown</span></button>
@@ -332,7 +340,7 @@ for (const [btn, provider] of [["googleBtn", "google"], ["githubBtn", "github"]]
   });
 }
 
-$("signout").addEventListener("click", async () => { await supabase.auth.signOut(); location.href = "/dashboard/"; });
+$("signout").addEventListener("click", async () => { await supabase.auth.signOut(); location.href = "/"; });
 
 /* ---------- nav ---------- */
 function show(page) {
@@ -452,19 +460,44 @@ async function loadAll() {
 }
 
 /* ---------- onboarding wizard ---------- */
-const WIZ_TITLES = { 1: "Which agent are you using?", 2: "Set up the Fetch42 skill", 3: "Create your account", 4: "Try it out" };
+const WIZ_TITLES = { 1: "Which agent are you using?", 2: "Set up the Fetch42 skill", 3: "Create your account", 4: "Your API key", 5: "Try it out" };
 let wizStep = 1;
 
 function wizGo(n) {
   wizStep = n;
   document.querySelectorAll("[data-wstep]").forEach((d) => d.classList.toggle("hidden", Number(d.dataset.wstep) !== n));
-  $("wizFill").style.width = (n / 4) * 100 + "%";
+  $("wizFill").style.width = (n / 5) * 100 + "%";
   $("wizTitle").textContent = WIZ_TITLES[n];
   $("wizBack").style.visibility = n === 4 ? "hidden" : "visible";
   $("wizBack").textContent = n === 1 ? "Skip" : "Back";
   $("wizNext").classList.toggle("hidden", n === 3);
-  $("wizNext").textContent = n === 4 ? "Done ✓" : "Next →";
+  $("wizNext").textContent = n === 5 ? "Done ✓" : "Next →";
+  if (n === 4) wizCreateKey();
 }
+
+let wizKeyMade = false;
+async function wizCreateKey() {
+  if (wizKeyMade) return;
+  wizKeyMade = true;
+  const { data: { user } } = await supabase.auth.getUser();
+  const raw = "fk_live_" + [...crypto.getRandomValues(new Uint8Array(24))].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const { error } = await supabase.from("api_keys").insert({
+    user_id: user.id, key_hash: await sha256hex(raw), key_prefix: raw.slice(0, 14), name: "default",
+  });
+  if (error) {
+    wizKeyMade = false;
+    $("wizKeyMsg").textContent = "Could not create key — " + error.message + ". Retry from the API Keys page after finishing.";
+    $("wizKeyValue").textContent = "—";
+  } else {
+    $("wizKeyValue").textContent = raw;
+    loadKeys();
+  }
+}
+$("wizCopyKey").addEventListener("click", () => {
+  navigator.clipboard.writeText($("wizKeyValue").textContent);
+  $("wizCopyKey").textContent = "Copied ✓";
+  setTimeout(() => { $("wizCopyKey").textContent = "Copy key"; }, 1800);
+});
 function wizOpen(n) { $("wiz").classList.remove("hidden"); $("app").classList.add("blur"); wizGo(n); }
 function wizFinish() {
   localStorage.setItem("f42_onb_done", "1");
@@ -473,7 +506,7 @@ function wizFinish() {
 }
 $("wizBack").addEventListener("click", () => wizGo(wizStep === 1 ? 3 : wizStep - 1));
 $("wizNext").addEventListener("click", () => {
-  if (wizStep === 4) wizFinish();
+  if (wizStep === 5) wizFinish();
   else wizGo(wizStep + 1);
 });
 document.querySelectorAll(".agent-opt").forEach((b) =>
