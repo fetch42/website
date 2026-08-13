@@ -13,7 +13,7 @@ remaining balance.
 ## Step 1 — API key
 
 Ask your human for a Fetch42 API key. They can create one in ~1 minute at
-https://fetch42.ai/dashboard ($3 free credit on signup, no card required).
+https://fetch42.ai/dashboard ($1 free credit on signup, no card required).
 
 Store it as the environment variable `FETCH42_API_KEY`. Never hardcode it.
 
