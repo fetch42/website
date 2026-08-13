@@ -1,16 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <radialGradient id="glow"><stop offset="0" stop-color="#E0855F" stop-opacity="0.55"/><stop offset="1" stop-color="#E0855F" stop-opacity="0"/></radialGradient>
+    <radialGradient id="glow"><stop offset="0" stop-color="#C96442" stop-opacity="0.55"/><stop offset="1" stop-color="#C96442" stop-opacity="0"/></radialGradient>
     <linearGradient id="tail" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#E0855F"/><stop offset="0.45" stop-color="#C96442"/><stop offset="1" stop-color="#C96442" stop-opacity="0.12"/>
+      <stop offset="0" stop-color="#C96442"/><stop offset="0.45" stop-color="#C96442"/><stop offset="1" stop-color="#C96442" stop-opacity="0.12"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="#0a0a0c"/>
-  <g>
-    <animateTransform attributeName="transform" type="rotate" from="0 256 256" to="360 256 256" dur="24s" repeatCount="indefinite"/>
+    <g>
+    <animateTransform attributeName="transform" type="rotate" from="0 256 256" to="360 256 256" dur="12s" repeatCount="indefinite"/>
     <path d="M 119.2 177.0 L 114.0 188.0 L 109.6 199.3 L 106.2 210.9 L 103.6 222.7 L 102.0 234.6 L 101.3 246.5 L 101.5 258.5 L 102.6 270.3 L 104.6 282.0 L 107.5 293.5 L 111.3 304.6 L 115.9 315.5 L 121.3 325.9 L 127.5 335.8 L 134.3 345.2 L 141.9 354.0 L 150.1 362.2 L 158.8 369.8 L 168.1 376.6 L 177.9 382.6 L 188.1 387.9 L 198.6 392.4 L 209.4 396.1 L 220.4 398.9 L 231.6 400.8 L 242.8 401.9 L 254.1 402.1 L 265.3 401.5 L 276.5 400.0 L 287.4 397.7 L 298.1 394.5 L 308.5 390.5 L 318.6 385.8 L 328.3 380.3 L 337.5 374.2 L 346.1 367.3 L 354.2 359.8 L 361.7 351.8 L 368.6 343.2 L 374.7 334.1 L 380.2 324.6 L 384.9 314.7 L 388.8 304.5 L 391.9 294.1 L 394.2 283.5 L 395.7 272.7 L 396.4 261.9 L 396.2 251.1 L 395.3 240.3 L 393.5 229.7 L 390.9 219.2 L 387.5 209.0 L 383.4 199.1 L 378.5 189.5 L 372.9 180.3 L 366.7 171.6 L 359.8 163.4 L 352.3 155.7 L 344.3 148.6 L 335.7 142.1 L 334.6 143.8 L 343.0 150.2 L 350.8 157.2 L 358.1 164.9 L 364.8 173.0 L 370.8 181.7 L 376.0 190.8 L 380.6 200.3 L 384.4 210.1 L 387.4 220.2 L 389.6 230.4 L 391.0 240.8 L 391.6 251.3 L 391.4 261.7 L 390.3 272.1 L 388.5 282.4 L 385.8 292.4 L 382.4 302.2 L 378.3 311.7 L 373.4 320.9 L 367.9 329.6 L 361.7 337.8 L 354.8 345.5 L 347.5 352.7 L 339.6 359.2 L 331.2 365.1 L 322.4 370.3 L 313.3 374.8 L 303.9 378.5 L 294.2 381.6 L 284.3 383.8 L 274.4 385.3 L 264.3 386.0 L 254.3 385.9 L 244.3 385.0 L 234.5 383.3 L 224.8 380.9 L 215.4 377.8 L 206.3 374.0 L 197.6 369.4 L 189.2 364.3 L 181.3 358.5 L 173.9 352.1 L 167.0 345.2 L 160.8 337.8 L 155.1 330.0 L 150.1 321.8 L 145.7 313.2 L 142.0 304.4 L 139.1 295.3 L 136.8 286.1 L 135.3 276.7 L 134.6 267.3 L 134.5 257.9 L 135.2 248.6 L 136.6 239.4 L 138.7 230.4 L 141.5 221.6 L 145.0 213.0 L 149.1 204.8 L 153.8 197.0 Z" fill="url(#tail)"/>
     <circle cx="136.5" cy="187.0" r="66" fill="url(#glow)"/>
-    <circle cx="136.5" cy="187.0" r="26" fill="#E0855F"/>
+    <circle cx="136.5" cy="187.0" r="26" fill="#C96442"/>
   </g>
-  <circle cx="256" cy="256" r="46" fill="#E0855F"/>
+  <circle cx="256" cy="256" r="46" fill="#C96442"/>
 </svg>
