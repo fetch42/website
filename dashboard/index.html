@@ -90,6 +90,9 @@
   .freeline { display:inline-flex; font-size:13px; color:var(--green); background:rgba(14,159,91,.07);
     border:1px solid rgba(14,159,91,.25); border-radius:999px; padding:4px 12px; margin-bottom:20px; }
 
+  /* Crisp launcher bubble +25% (button only, not the open chat window) */
+  #crisp-chatbox > div > a { transform: scale(1.25) !important; transform-origin: 100% 100% !important; }
+
   /* ---------- onboarding wizard ---------- */
   .spin { width:34px; height:34px; border-radius:50%; border:3px solid var(--line2); border-top-color:var(--accent); animation:spin 1s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
