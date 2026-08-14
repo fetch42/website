@@ -1074,9 +1074,12 @@ async function loadAll() {
 
   const { data: bal } = await supabase.rpc("get_balance", { p_user_id: user.id });
   const balTxt = `$${Number(bal ?? 0).toFixed(3)}`;
-  $("ovBalance").textContent = balTxt;
-  $("accBalance").textContent = balTxt;
-  $("walletBalance").textContent = `$${Number(bal ?? 0).toFixed(2)}`;
+  if (!window.f42BalAnim || $("successModal").classList.contains("hidden")) {
+    window.f42BalAnim = null;
+    $("ovBalance").textContent = balTxt;
+    $("accBalance").textContent = balTxt;
+    $("walletBalance").textContent = `$${Number(bal ?? 0).toFixed(2)}`;
+  }
 
   const since = new Date(Date.now() - 30 * 864e5).toISOString();
   const { data: calls } = await supabase.from("calls")
@@ -1573,7 +1576,17 @@ function countUp(el, from, to, decimals, prefix) {
     if (k < 1) requestAnimationFrame(tick);
   })(t0);
 }
-$("sucOk").addEventListener("click", () => { $("successModal").classList.add("hidden"); $("app").classList.remove("blur"); });
+$("sucOk").addEventListener("click", () => {
+  $("successModal").classList.add("hidden");
+  $("app").classList.remove("blur");
+  const a = window.f42BalAnim;
+  if (a) {
+    window.f42BalAnim = null;
+    countUp($("walletBalance"), a.from, a.to, 2, "$");
+    countUp($("accBalance"), a.from, a.to, 3, "$");
+    countUp($("ovBalance"), a.from, a.to, 3, "$");
+  }
+});
 async function celebrateTopup(sid) {
   $("successModal").classList.remove("hidden");
   $("app").classList.add("blur");
@@ -1592,9 +1605,8 @@ async function celebrateTopup(sid) {
     confettiBurst();
     countUp($("sucAmt"), 0, amount, 2, "+$");
     countUp($("sucBal"), Math.max(0, newBal - amount), newBal, 2, "New balance: $");
-    countUp($("walletBalance"), Math.max(0, newBal - amount), newBal, 2, "$");
-    $("ovBalance").textContent = `$${newBal.toFixed(3)}`;
-    $("accBalance").textContent = `$${newBal.toFixed(3)}`;
+    // page balances animate the moment the modal closes
+    window.f42BalAnim = { from: Math.max(0, newBal - amount), to: newBal };
   };
   // fast path: the ledger row for THIS checkout session (direct query, ~150ms)
   for (let i = 0; i < 40; i++) {
