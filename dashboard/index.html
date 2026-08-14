@@ -34,6 +34,22 @@
   .nav-item.active { color:var(--text); background:var(--panel); font-weight:600; }
   .nav-item .ic { width:18px; text-align:center; opacity:.9; }
   .side-foot { margin-top:auto; border-top:1px solid var(--line); padding-top:14px; }
+  .wallet { width:100%; text-align:left; background:var(--bg2); border:1px solid var(--line); border-radius:14px;
+    padding:13px 14px; margin:2px 0 14px; cursor:pointer; }
+  .wallet:hover { border-color:var(--line2); }
+  .wallet .wlabel { font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:2px; }
+  .wallet .wamount { font-size:21px; font-weight:700; letter-spacing:-.02em; }
+  .wallet .wadd { font-size:12.5px; font-weight:600; color:var(--accent); margin-top:3px; }
+  .ar-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14.5px; }
+  .ar-row input[type=number] { width:76px; background:#fff; border:1px solid var(--line2); border-radius:8px;
+    color:var(--text); font-size:14px; padding:7px 9px; font-family:inherit; }
+  .switch { position:relative; width:40px; height:23px; flex:none; }
+  .switch input { opacity:0; width:0; height:0; }
+  .switch .track { position:absolute; inset:0; background:var(--line2); border-radius:999px; transition:background .15s; cursor:pointer; }
+  .switch .track::after { content:""; position:absolute; top:2.5px; left:3px; width:18px; height:18px; border-radius:50%;
+    background:#fff; transition:transform .15s; box-shadow:0 1px 3px rgba(26,26,30,.25); }
+  .switch input:checked + .track { background:var(--green); }
+  .switch input:checked + .track::after { transform:translateX(16px); }
   .side-foot .email { font-size:12.5px; color:var(--muted); padding:0 10px 8px; overflow:hidden; text-overflow:ellipsis; }
   main { flex:1; min-width:0; padding:40px 44px 80px; max-width:1060px; }
   h1 { font-size:26px; letter-spacing:-.02em; margin-bottom:4px; }
@@ -295,11 +311,16 @@
 <div id="app" class="layout hidden">
   <aside>
     <a class="side-logo" href="/"><img src="/assets/mark.svg" alt=""><span class="wm">fetch<span>42</span></span></a>
+    <button class="wallet" data-page="account" title="Open billing">
+      <div class="wlabel">Balance</div>
+      <div class="wamount" id="walletBalance">—</div>
+      <div class="wadd">+ Add funds</div>
+    </button>
     <button class="nav-item active" data-page="overview"><span class="ic">▦</span>Overview</button>
     <button class="nav-item" data-page="keys"><span class="ic">⚿</span>API Keys</button>
     <button class="nav-item" data-page="endpoints"><span class="ic">⌘</span>Endpoints</button>
     <button class="nav-item" data-page="usage"><span class="ic">〰</span>Usage</button>
-    <button class="nav-item" data-page="account"><span class="ic">◍</span>Account</button>
+    <button class="nav-item" data-page="account"><span class="ic">◍</span>Billing</button>
     <button class="nav-item" id="contactUs" style="margin-top:auto"><span class="ic">✉</span>Contact us</button>
     <div class="side-foot" style="margin-top:0">
       <div class="email" id="userEmail">…</div>
@@ -356,21 +377,35 @@
     </section>
 
     <section data-sect="account" class="hidden">
-      <h1>Account</h1>
+      <h1>Billing</h1>
       <p class="sub" id="accEmail">…</p>
       <div class="cards" style="max-width:640px">
         <div class="stat"><div class="label">Balance</div><div class="val" id="accBalance">—</div><div class="hint">Prepaid · unused balance refundable anytime</div></div>
       </div>
       <h2>Top up</h2>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn" data-amt="5">Top up $5</button>
-        <button class="btn" data-amt="20">Top up $20</button>
-        <button class="btn" data-amt="50">Top up $50</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn" data-amt="5">$5</button>
+        <button class="btn" data-amt="20">$20</button>
+        <button class="btn" data-amt="50">$50</button>
+        <input type="number" id="customAmt" min="5" max="500" placeholder="Custom" style="width:96px;background:#fff;border:1px solid var(--line2);border-radius:999px;color:var(--text);font-size:14.5px;padding:10px 16px;font-family:inherit">
+        <button class="btn ghost" id="customTopup">Add funds</button>
       </div>
-      <p class="muted" style="font-size:13px;margin-top:10px">One-time card payment via Stripe. No subscription. Credits never expire.</p>
-      <h2>Billing history</h2>
+      <p class="muted" style="font-size:13px;margin-top:10px">One-time card payment via Stripe ($5–$500). No subscription. Credits never expire.</p>
+      <h2>Auto-recharge</h2>
+      <div class="card" style="max-width:640px">
+        <div class="ar-row">
+          <label class="switch"><input type="checkbox" id="arEnabled"><span class="track"></span></label>
+          <span>Charge</span>
+          <input type="number" id="arAmount" min="5" max="500" value="10">
+          <span>when my balance falls below</span>
+          <input type="number" id="arThreshold" min="1" max="100" value="2">
+          <button class="btn sm" id="arSave" style="margin-left:auto">Save</button>
+        </div>
+        <p class="muted" id="arStatus" style="font-size:13px;margin-top:12px">Loading…</p>
+      </div>
+      <h2>Payment history</h2>
       <div class="card">
-        <table id="ledgerTable"><thead><tr><th>Date</th><th>Type</th><th class="r">Amount</th></tr></thead><tbody></tbody></table>
+        <table id="ledgerTable"><thead><tr><th>Date</th><th>Type</th><th class="r">Amount</th><th class="r">Receipt</th></tr></thead><tbody></tbody></table>
       </div>
     </section>
   </main>
@@ -455,7 +490,7 @@ function show(page) {
   document.querySelectorAll(".nav-item[data-page]").forEach((b) => b.classList.toggle("active", b.dataset.page === page));
   history.replaceState(null, "", "#" + page);
 }
-document.querySelectorAll(".nav-item[data-page]").forEach((b) => b.addEventListener("click", () => show(b.dataset.page)));
+document.querySelectorAll("[data-page]").forEach((b) => b.addEventListener("click", () => show(b.dataset.page)));
 
 /* ---------- top-up ---------- */
 document.querySelectorAll("[data-amt]").forEach((b) =>
@@ -471,6 +506,52 @@ document.querySelectorAll("[data-amt]").forEach((b) =>
     else { msg("Top-up unavailable right now — try again in a minute.", "bad"); b.disabled = false; }
   }),
 );
+
+$("customTopup").addEventListener("click", async () => {
+  const amt = Number($("customAmt").value);
+  if (!Number.isFinite(amt) || amt < 5 || amt > 500) { msg("Enter an amount between $5 and $500.", "bad"); return; }
+  $("customTopup").disabled = true;
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${API}/billing/topup`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ amount_usd: amt }),
+  }).then((r) => r.json()).catch(() => null);
+  if (res?.checkout_url) location.href = res.checkout_url;
+  else { msg("Top-up unavailable right now — try again in a minute.", "bad"); $("customTopup").disabled = false; }
+});
+
+/* ---------- auto-recharge ---------- */
+async function loadAutoRecharge() {
+  const { data: { session } } = await supabase.auth.getSession();
+  const cfg = await fetch(`${API}/billing/autorecharge`, {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  }).then((r) => r.json()).catch(() => null);
+  if (!cfg) { $("arStatus").textContent = "Could not load auto-recharge settings."; return; }
+  $("arEnabled").checked = !!cfg.enabled;
+  $("arAmount").value = cfg.amount_usd;
+  $("arThreshold").value = cfg.threshold_usd;
+  $("arStatus").textContent = cfg.has_saved_card
+    ? (cfg.enabled ? "Active — your saved card is charged automatically. Checked every 10 minutes, at most once per hour." : "Off — your card is saved, flip the switch to enable.")
+    : "Make one top-up first — Stripe saves your card securely during checkout, then you can enable auto-recharge.";
+}
+$("arSave").addEventListener("click", async () => {
+  $("arSave").disabled = true;
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${API}/billing/autorecharge`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      enabled: $("arEnabled").checked,
+      amount_usd: Number($("arAmount").value),
+      threshold_usd: Number($("arThreshold").value),
+    }),
+  }).then((r) => r.json()).catch(() => null);
+  if (res?.ok) { msg("Auto-recharge settings saved.", "ok"); loadAutoRecharge(); }
+  else if (res?.error === "no_saved_card") { $("arEnabled").checked = false; msg(res.detail, "bad"); }
+  else msg(res?.detail || "Could not save settings.", "bad");
+  $("arSave").disabled = false;
+});
 
 /* ---------- keys ---------- */
 $("createKey").addEventListener("click", async () => {
@@ -522,6 +603,7 @@ async function loadAll() {
   const balTxt = `$${Number(bal ?? 0).toFixed(3)}`;
   $("ovBalance").textContent = balTxt;
   $("accBalance").textContent = balTxt;
+  $("walletBalance").textContent = `$${Number(bal ?? 0).toFixed(2)}`;
 
   const since = new Date(Date.now() - 30 * 864e5).toISOString();
   const { data: calls } = await supabase.from("calls")
@@ -555,16 +637,20 @@ async function loadAll() {
     eb.appendChild(tr);
   }
 
-  const { data: ledger } = await supabase.from("ledger")
-    .select("created_at,amount_usd,reason").in("reason", ["topup", "grant", "refund"]).order("created_at", { ascending: false }).limit(20);
+  const { data: { session: sess } } = await supabase.auth.getSession();
+  const hist = await fetch(`${API}/billing/history`, {
+    headers: { Authorization: `Bearer ${sess.access_token}` },
+  }).then((r) => r.json()).catch(() => null);
   const lb = $("ledgerTable").querySelector("tbody");
   lb.innerHTML = "";
-  for (const l of ledger ?? []) {
+  for (const l of hist?.payments ?? []) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="muted">${l.created_at.slice(0, 10)}</td><td>${l.reason}</td>
-      <td class="mono r ok">+$${Number(l.amount_usd).toFixed(2)}</td>`;
+    tr.innerHTML = `<td class="muted">${l.date.slice(0, 10)}</td><td>${l.type}</td>
+      <td class="mono r ok">+$${Number(l.amount_usd).toFixed(2)}</td>
+      <td class="r">${l.receipt_url ? `<a href="${l.receipt_url}" target="_blank" style="text-decoration:underline">Receipt</a>` : '<span class="muted">—</span>'}</td>`;
     lb.appendChild(tr);
   }
+  loadAutoRecharge();
 }
 
 /* ---------- onboarding wizard ---------- */
