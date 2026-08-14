@@ -160,6 +160,17 @@
   .ma-answer { align-self:flex-start; max-width:92%; border:1px solid #2a2a32; color:#fff; border-radius:14px 14px 14px 4px;
     padding:9px 13px; font-size:13px; line-height:1.5; }
   .ma-foot { border-top:1px solid #26262c; padding:8px 14px; font-family:"Geist Mono", monospace; font-size:10.5px; color:#8a8a93; }
+  .kdots { background:none; border:0; color:var(--muted); font-size:19px; padding:4px 10px; border-radius:8px; line-height:1; }
+  .kdots:hover { background:var(--panel); color:var(--text); }
+  .row-menu { position:fixed; z-index:60; min-width:150px; background:#fff; border:1px solid var(--line2);
+    border-radius:10px; box-shadow:0 16px 48px rgba(26,26,30,.18); padding:6px; }
+  .row-menu button { display:flex; align-items:center; gap:9px; width:100%; border:0; background:none;
+    color:var(--text); font-size:14px; font-weight:500; padding:9px 12px; border-radius:8px; text-align:left; }
+  .row-menu button:hover { background:var(--panel); }
+  .row-menu button.danger { color:var(--red); }
+  .btn.danger { background:var(--red); color:#fff; }
+  .btn.danger:hover { background:#b91c1c; }
+  .key-disabled { text-decoration:line-through; color:var(--muted); }
   .km-label { display:block; font-size:12.5px; font-weight:600; margin:14px 0 6px; text-align:left; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
   .km-input { width:100%; background:#fff; border:1px solid var(--line2); border-radius:10px; padding:11px 13px;
     font-family:inherit; font-size:14.5px; color:var(--text); }
@@ -328,6 +339,20 @@
     <div class="wiz-foot">
       <button class="btn ghost sm" id="kmCancel">Cancel</button>
       <button class="btn sm" id="kmSave">Create key</button>
+    </div>
+  </div>
+</div>
+
+<!-- confirm dialog -->
+<div id="confirmModal" class="wiz-overlay hidden">
+  <div class="wiz-modal" style="max-width:440px">
+    <div class="wiz-body" style="min-height:0;text-align:left;padding:26px 26px 20px">
+      <p style="font-size:17px;font-weight:700;margin-bottom:8px" id="cfTitle">Are you sure?</p>
+      <p class="muted" style="font-size:14.5px" id="cfBody"></p>
+    </div>
+    <div class="wiz-foot">
+      <button class="btn ghost sm" id="cfCancel">Cancel</button>
+      <button class="btn sm" id="cfOk">Confirm</button>
     </div>
   </div>
 </div>
@@ -604,6 +629,25 @@ $("portalBtn").addEventListener("click", async () => {
 });
 
 /* ---------- keys: create/edit modal ---------- */
+let cfAction = null;
+function confirmDialog(title, bodyHtml, okLabel, danger, action) {
+  $("cfTitle").textContent = title;
+  $("cfBody").innerHTML = bodyHtml;
+  $("cfOk").textContent = okLabel;
+  $("cfOk").className = danger ? "btn sm danger" : "btn sm";
+  cfAction = action;
+  $("confirmModal").classList.remove("hidden");
+  $("app").classList.add("blur");
+}
+function closeConfirm() { $("confirmModal").classList.add("hidden"); $("app").classList.remove("blur"); cfAction = null; }
+$("cfCancel").addEventListener("click", closeConfirm);
+$("confirmModal").addEventListener("click", (e) => { if (e.target === $("confirmModal")) closeConfirm(); });
+$("cfOk").addEventListener("click", async () => { const a = cfAction; closeConfirm(); if (a) await a(); });
+
+let rowMenu = null;
+function closeRowMenu() { if (rowMenu) { rowMenu.remove(); rowMenu = null; } }
+document.addEventListener("click", (e) => { if (rowMenu && !e.target.closest(".row-menu") && !e.target.closest(".kdots")) closeRowMenu(); });
+
 let kmState = { mode: "create", id: null };
 function openKeyModal(mode, key) {
   kmState = { mode, id: key?.id ?? null };
@@ -675,31 +719,64 @@ function renderKeys() {
     const cap = k.daily_cap_usd == null ? '<span class="muted">unlimited</span>' : `$${Number(k.daily_cap_usd).toFixed(2)}/day`;
     const exp = k.expires_at ? k.expires_at.slice(0, 10) : '<span class="muted">Never</span>';
     const usage = st.spend_usd != null ? `$${Number(st.spend_usd).toFixed(3)}` : "$0.000";
+    const disabled = !!k.revoked_at;
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td><div style="font-weight:600">${k.name}</div><div class="mono muted" style="font-size:12.5px;margin-top:2px">${k.key_prefix}…</div></td>
+    tr.innerHTML = `<td><div style="font-weight:600" class="${disabled ? "key-disabled" : ""}">${k.name}</div><div class="mono muted" style="font-size:12.5px;margin-top:2px">${k.key_prefix}…</div></td>
       <td>${exp}</td>
       <td class="muted">${timeAgo(st.last_used)}</td>
       <td class="mono r">${usage}</td>
       <td class="r">${cap}</td>
-      <td class="r">${k.revoked_at ? '<span class="bad">revoked</span>' : `<button class="btn ghost sm" data-edit="${k.id}">Edit</button> <button class="btn ghost sm" data-revoke="${k.id}">Revoke</button>`}</td>`;
+      <td class="r"><button class="kdots" data-menu="${k.id}" aria-label="Key actions">⋮</button></td>`;
     tb.appendChild(tr);
   }
   $("keyCount").textContent = `${list.length} key${list.length === 1 ? "" : "s"}`;
-  tb.querySelectorAll("[data-revoke]").forEach((b) =>
-    b.addEventListener("click", async () => {
-      if (!confirm("Revoke this key? Agents using it stop working immediately.")) return;
-      await supabase.from("api_keys").update({ revoked_at: new Date().toISOString() }).eq("id", b.dataset.revoke);
-      loadKeys();
+  tb.querySelectorAll("[data-menu]").forEach((b) =>
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeRowMenu();
+      const k = keysCache.find((x) => x.id === b.dataset.menu);
+      const disabled = !!k.revoked_at;
+      rowMenu = document.createElement("div");
+      rowMenu.className = "row-menu";
+      rowMenu.innerHTML = `
+        ${disabled ? "" : `<button data-act="edit">✎&nbsp; Edit</button>`}
+        <button data-act="${disabled ? "enable" : "disable"}">${disabled ? "◉&nbsp; Enable" : "⊘&nbsp; Disable"}</button>
+        <button data-act="delete" class="danger">🗑&nbsp; Delete</button>`;
+      document.body.appendChild(rowMenu);
+      const r = b.getBoundingClientRect();
+      const mw = 150;
+      rowMenu.style.top = `${r.bottom + 6}px`;
+      rowMenu.style.left = `${Math.min(r.left, window.innerWidth - mw - 12)}px`;
+      rowMenu.querySelectorAll("[data-act]").forEach((mb) =>
+        mb.addEventListener("click", async () => {
+          closeRowMenu();
+          const act = mb.dataset.act;
+          if (act === "edit") openKeyModal("edit", k);
+          else if (act === "disable") {
+            confirmDialog("Disable key", `Are you sure you want to disable <b class="mono">${k.name}</b>? You can re-enable it later.`, "Disable", true, async () => {
+              await supabase.from("api_keys").update({ revoked_at: new Date().toISOString() }).eq("id", k.id);
+              loadKeys();
+            });
+          } else if (act === "enable") {
+            confirmDialog("Enable key", `Re-enable <b class="mono">${k.name}</b>? Agents using it start working again immediately.`, "Enable", false, async () => {
+              await supabase.from("api_keys").update({ revoked_at: null }).eq("id", k.id);
+              loadKeys();
+            });
+          } else if (act === "delete") {
+            confirmDialog("Delete key", `Are you sure you want to delete <b class="mono">${k.name}</b>? This action cannot be undone.`, "Delete", true, async () => {
+              await supabase.from("api_keys").update({ deleted_at: new Date().toISOString(), revoked_at: k.revoked_at ?? new Date().toISOString() }).eq("id", k.id);
+              loadKeys();
+            });
+          }
+        }),
+      );
     }),
-  );
-  tb.querySelectorAll("[data-edit]").forEach((b) =>
-    b.addEventListener("click", () => openKeyModal("edit", keysCache.find((k) => k.id === b.dataset.edit))),
   );
 }
 $("keySearch").addEventListener("input", renderKeys);
 async function loadKeys() {
   const [{ data: keys }, { data: stats }] = await Promise.all([
-    supabase.from("api_keys").select("id,key_prefix,name,daily_cap_usd,expires_at,created_at,revoked_at").order("created_at"),
+    supabase.from("api_keys").select("id,key_prefix,name,daily_cap_usd,expires_at,created_at,revoked_at").is("deleted_at", null).order("created_at"),
     supabase.rpc("key_usage_stats"),
   ]);
   keysCache = keys ?? [];
