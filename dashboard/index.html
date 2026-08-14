@@ -591,7 +591,7 @@
         <input type="number" id="customAmt" min="5" max="500" placeholder="Custom amount $" style="width:210px;background:#fff;border:1px solid var(--line2);border-radius:999px;color:var(--text);font-size:14.5px;padding:10px 16px;font-family:inherit">
         <button class="btn ghost" id="customTopup">Add funds</button>
       </div>
-      <p class="muted" style="font-size:13px;margin-top:10px">One-time card payment via Stripe ($5–$500, charged in USD). No subscription. Credits never expire. Buying for a company? Tick <b>“I’m purchasing as a business”</b> at checkout to put your company name and VAT ID on the invoice.</p>
+      <p class="muted" style="font-size:13px;margin-top:10px" id="topupNote">One-time card payment via Stripe ($5–$500, charged in USD). No subscription. Credits never expire. Buying for a company? Tick <b>“I’m purchasing as a business”</b> at checkout to put your company name and VAT ID on the invoice.</p>
       <div style="margin-top:14px">
         <button class="btn ghost sm" id="portalBtn">Business details & invoices ↗</button>
         <span class="muted" id="portalMsg" style="font-size:13px;margin-left:10px"></span>
@@ -734,32 +734,32 @@ function show(page) {
 document.querySelectorAll("[data-page]").forEach((b) => b.addEventListener("click", () => show(b.dataset.page)));
 
 /* ---------- top-up ---------- */
+async function doTopup(amount, btn) {
+  btn.disabled = true;
+  const { data: { session } } = await supabase.auth.getSession();
+  const auth = { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" };
+  if (window.f42Card && !window.f42ForceCheckout) {
+    const prev = btn.textContent;
+    btn.textContent = "Charging…";
+    const r = await fetch(`${API}/billing/topup-instant`, { method: "POST", headers: auth, body: JSON.stringify({ amount_usd: amount }) })
+      .then((x) => x.json()).catch(() => null);
+    btn.textContent = prev;
+    if (r?.ok) { btn.disabled = false; loadAll(); void celebrateTopup(r.invoice_id); return; }
+    // bank wants 3DS / charge failed → fall through to hosted checkout
+  }
+  const res = await fetch(`${API}/billing/topup`, { method: "POST", headers: auth, body: JSON.stringify({ amount_usd: amount }) })
+    .then((r) => r.json()).catch(() => null);
+  if (res?.checkout_url) location.href = res.checkout_url;
+  else { msg("Top-up unavailable right now — try again in a minute.", "bad"); btn.disabled = false; }
+}
 document.querySelectorAll("[data-amt]").forEach((b) =>
-  b.addEventListener("click", async () => {
-    b.disabled = true;
-    const { data: { session } } = await supabase.auth.getSession();
-    const res = await fetch(`${API}/billing/topup`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ amount_usd: Number(b.dataset.amt) }),
-    }).then((r) => r.json()).catch(() => null);
-    if (res?.checkout_url) location.href = res.checkout_url;
-    else { msg("Top-up unavailable right now — try again in a minute.", "bad"); b.disabled = false; }
-  }),
+  b.addEventListener("click", () => doTopup(Number(b.dataset.amt), b)),
 );
 
-$("customTopup").addEventListener("click", async () => {
+$("customTopup").addEventListener("click", () => {
   const amt = Number($("customAmt").value);
   if (!Number.isFinite(amt) || amt < 5 || amt > 500) { msg("Enter an amount between $5 and $500.", "bad"); return; }
-  $("customTopup").disabled = true;
-  const { data: { session } } = await supabase.auth.getSession();
-  const res = await fetch(`${API}/billing/topup`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ amount_usd: amt }),
-  }).then((r) => r.json()).catch(() => null);
-  if (res?.checkout_url) location.href = res.checkout_url;
-  else { msg("Top-up unavailable right now — try again in a minute.", "bad"); $("customTopup").disabled = false; }
+  doTopup(amt, $("customTopup"));
 });
 
 /* ---------- auto-recharge ---------- */
@@ -772,6 +772,11 @@ async function loadAutoRecharge() {
   $("arEnabled").checked = !!cfg.enabled;
   $("arAmount").value = cfg.amount_usd;
   $("arThreshold").value = cfg.threshold_usd;
+  window.f42Card = cfg.has_saved_card ? (cfg.card_last4 || "on file") : null;
+  if (cfg.has_saved_card) {
+    $("topupNote").innerHTML = `⚡ <b>1-click top-up</b> with your saved card ${cfg.card_last4 ? "••••" + cfg.card_last4 : "on file"} — instant, no redirect ($5–$500, USD). Invoices land in Payment history. <a href="#" id="fullCheckoutLink" style="text-decoration:underline">Use the full checkout instead</a> (e.g. to pay as a business or change card).`;
+    document.getElementById("fullCheckoutLink").addEventListener("click", (e) => { e.preventDefault(); window.f42ForceCheckout = !window.f42ForceCheckout; e.target.textContent = window.f42ForceCheckout ? "1-click re-enabled? click again" : "Use the full checkout instead"; e.target.textContent = window.f42ForceCheckout ? "Full checkout ON for next top-up - click to undo" : "Use the full checkout instead"; });
+  }
   $("arStatus").textContent = cfg.has_saved_card
     ? (cfg.enabled ? "Active — your saved card is charged automatically. Checked every 10 minutes, at most once per hour." : "Off — your card is saved, flip the switch to enable.")
     : "Make one top-up first — Stripe saves your card securely during checkout, then you can enable auto-recharge.";
