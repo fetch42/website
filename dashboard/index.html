@@ -733,6 +733,8 @@ $("contactUs").addEventListener("click", () => {
 
 /* ---------- nav ---------- */
 function show(page) {
+  $("msg").textContent = "";
+  $("msg").className = "";
   document.querySelectorAll("[data-sect]").forEach((s) => s.classList.toggle("hidden", s.dataset.sect !== page));
   document.querySelectorAll(".nav-item[data-page]").forEach((b) => b.classList.toggle("active", b.dataset.page === page));
   history.replaceState(null, "", "#" + page);
