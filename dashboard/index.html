@@ -484,9 +484,14 @@
 
     <section data-sect="endpoints" class="hidden">
       <h1>Endpoints</h1>
-      <p class="sub">Everything the API serves today, with live posted prices. Need another capability? <a href="mailto:laurent@fetch42.ai" style="text-decoration:underline">Tell us</a>.</p>
+      <p class="sub"><span id="epCount">…</span> live endpoints, one key — priced per call, tested continuously. Need another capability? <a href="mailto:laurent@fetch42.ai" style="text-decoration:underline">Tell us</a>.</p>
       <div class="card">
-        <table id="endpointsTable"><thead><tr><th>Endpoint</th><th>Returns</th><th class="r">Price / call</th></tr></thead><tbody></tbody></table>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+          <input type="text" id="epSearch" class="km-input" placeholder="Search — try “comments”, “amazon”, “transcript”…" style="max-width:320px">
+          <select id="epCat" class="km-input" style="width:auto"><option value="">All platforms</option></select>
+        </div>
+        <table id="endpointsTable"><thead><tr><th>Endpoint</th><th>What it returns</th><th class="r">Uptime 7d</th><th class="r">Price / call</th><th></th></tr></thead><tbody></tbody></table>
+        <p class="muted" id="epShown" style="margin-top:12px;font-size:13px"></p>
       </div>
     </section>
 
@@ -999,15 +1004,7 @@ async function loadAll() {
   loadActivity();
   loadProfile();
 
-  const { data: prices } = await supabase.from("prices").select("endpoint,price_usd").eq("active", true).order("endpoint");
-  const eb = $("endpointsTable").querySelector("tbody");
-  eb.innerHTML = "";
-  for (const p of prices ?? []) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="mono">${p.endpoint}</td><td class="muted">${ENDPOINT_DESC[p.endpoint] ?? ""}</td>
-      <td class="mono r">$${Number(p.price_usd).toFixed(3)}</td>`;
-    eb.appendChild(tr);
-  }
+  loadEndpointsCatalog();
 
   const { data: { session: sess } } = await supabase.auth.getSession();
   const hist = await fetch(`${API}/billing/history`, {
@@ -1201,6 +1198,58 @@ $("copyPrompt").addEventListener("click", () => {
   $("copyPrompt").textContent = "Copied — paste it into " + (localStorage.getItem("f42_harness") || "your agent") + " ✓";
   setTimeout(() => { $("copyPrompt").textContent = "Copy this prompt"; }, 2200);
 });
+
+/* ---------- endpoints catalog (user view) ---------- */
+let epList = [], epUptime = {};
+async function loadEndpointsCatalog() {
+  if (epList.length) return;
+  const [cat, up] = await Promise.all([
+    fetch(`${API}/v1/catalog`).then((r) => r.json()).catch(() => null),
+    fetch(`${API}/v1/uptime`).then((r) => r.json()).catch(() => null),
+  ]);
+  epList = cat?.endpoints ?? [];
+  epUptime = up?.endpoints ?? {};
+  $("epCount").textContent = cat?.count ?? "?";
+  const cats = [...new Set(epList.map((e) => e.category))].sort();
+  for (const cname of cats) {
+    const o = document.createElement("option");
+    o.value = cname; o.textContent = cname;
+    $("epCat").appendChild(o);
+  }
+  renderEndpointsCatalog();
+}
+function renderEndpointsCatalog() {
+  const needle = ($("epSearch").value || "").trim().toLowerCase();
+  const cname = $("epCat").value;
+  const list = epList.filter((e) =>
+    (!cname || e.category === cname) &&
+    (!needle || `${e.name} ${e.description} ${e.category}`.toLowerCase().includes(needle)));
+  const eb = $("endpointsTable").querySelector("tbody");
+  eb.innerHTML = "";
+  for (const e of list.slice(0, 400)) {
+    const up = epUptime[e.name];
+    const upTxt = up ? `<span class="${up.uptime_pct >= 99 ? "ok" : up.uptime_pct >= 90 ? "" : "bad"}">${up.uptime_pct}%</span>` : '<span class="muted">—</span>';
+    const firstSentence = (e.description || "").split(". ")[0].slice(0, 110);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><div class="mono" style="font-size:13px;font-weight:500">${e.name}</div><div class="muted" style="font-size:11.5px">${e.category}</div></td>
+      <td class="muted" style="font-size:13px;max-width:420px">${firstSentence}</td>
+      <td class="mono r">${upTxt}</td>
+      <td class="mono r">$${Number(e.price_usd).toFixed(3)}</td>
+      <td class="r"><button class="btn ghost sm" data-excurl="${encodeURIComponent(e.example_request || e.path)}">Copy example</button></td>`;
+    eb.appendChild(tr);
+  }
+  $("epShown").textContent = `${list.length} endpoint${list.length === 1 ? "" : "s"}${list.length > 400 ? " (showing first 400)" : ""}`;
+  eb.querySelectorAll("[data-excurl]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const path = decodeURIComponent(b.dataset.excurl);
+      navigator.clipboard.writeText(`curl "https://api.fetch42.ai${path}" \\\n  -H "Authorization: Bearer YOUR_FETCH42_KEY"`);
+      b.textContent = "Copied ✓";
+      setTimeout(() => { b.textContent = "Copy example"; }, 1600);
+    }),
+  );
+}
+$("epSearch").addEventListener("input", renderEndpointsCatalog);
+$("epCat").addEventListener("change", renderEndpointsCatalog);
 
 /* ---------- activity ---------- */
 const RANGES = { "24h": 864e5, "7d": 7 * 864e5, "30d": 30 * 864e5, "1y": 365 * 864e5 };
