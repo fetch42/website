@@ -27,9 +27,6 @@ Any other MCP client (generic JSON config):
       "headers": { "Authorization": "Bearer <KEY>" }
     }
 
-Note: while the api.fetch42.ai certificate is being provisioned, use
-`https://gateway-production-2c1d.up.railway.app/mcp` — same server, works today.
-
 The REST surface below is identical in coverage — use whichever fits.
 
 ## Step 1 — API key
