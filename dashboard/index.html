@@ -178,6 +178,7 @@
   .km-input::placeholder { color:#B4B2AB; }
   .km-input:disabled { background:var(--panel); color:var(--muted); border-color:var(--line); cursor:not-allowed; }
   .km-dim { opacity:.45; }
+  .km-input.km-invalid { border-color:var(--red); }
   .btn.inactive { background:#BDBDC2; color:#fff; cursor:default; }
   .btn.inactive:hover { background:#BDBDC2; }
   .prompt-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
@@ -332,8 +333,9 @@
   <div class="wiz-modal" style="max-width:460px">
     <div class="wiz-head"><img src="/assets/mark.svg" alt=""><span id="kmTitle">Create API key</span></div>
     <div class="wiz-body" style="min-height:0;text-align:left">
-      <label class="km-label" for="kmName">Name <span id="kmNameHint" class="bad hidden" style="text-transform:none;letter-spacing:0;font-weight:600;margin-left:8px">Please name your key</span></label>
+      <label class="km-label" for="kmName">Name</label>
       <input type="text" id="kmName" class="km-input" placeholder="e.g. &quot;Chatbot Key&quot;" maxlength="40">
+      <p id="kmNameHint" class="hidden" style="color:var(--red);font-size:12.5px;margin-top:6px">Please name your key.</p>
       <label class="km-label" for="kmExp">Expiration</label>
       <select id="kmExp" class="km-input">
         <option value="">No expiration</option>
@@ -709,6 +711,7 @@ function openKeyModal(mode, key) {
   }
   syncPeriodLock();
   $("kmNameHint").classList.add("hidden");
+  $("kmName").classList.remove("km-invalid");
   syncCreateState();
   $("kmMsg").textContent = "";
   $("keyModal").classList.remove("hidden");
@@ -719,7 +722,7 @@ $("kmCap").addEventListener("input", syncPeriodLock);
 function syncCreateState() {
   const named = $("kmName").value.trim() !== "";
   $("kmSave").classList.toggle("inactive", !named);
-  if (named) $("kmNameHint").classList.add("hidden");
+  if (named) { $("kmNameHint").classList.add("hidden"); $("kmName").classList.remove("km-invalid"); }
 }
 $("kmName").addEventListener("input", syncCreateState);
 $("keyDoneOk").addEventListener("click", () => {
@@ -741,7 +744,7 @@ $("createKey").addEventListener("click", () => openKeyModal("create"));
 
 $("kmSave").addEventListener("click", async () => {
   const name = $("kmName").value.trim();
-  if (!name) { $("kmNameHint").classList.remove("hidden"); return; }
+  if (!name) { $("kmNameHint").classList.remove("hidden"); $("kmName").classList.add("km-invalid"); $("kmName").focus(); return; }
   const capRaw = $("kmCap").value.trim();
   const cap = capRaw === "" ? null : Number(capRaw);
   if (cap !== null && (!Number.isFinite(cap) || cap <= 0)) { $("kmMsg").textContent = "Credit limit must be a positive number."; return; }
