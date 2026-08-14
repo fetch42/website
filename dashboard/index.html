@@ -1788,6 +1788,19 @@ if (session) {
   wizOpen(1);
 }
 supabase.auth.onAuthStateChange((_e, s) => { if (s && !$("wiz").classList.contains("hidden") && wizStep === 3) location.reload(); });
+
+// Balance/usage only loaded once at boot — if the tab sits open while calls
+// happen elsewhere (an agent script, another tab), it goes stale forever
+// without this. Refresh on tab-focus, debounced so switching tabs rapidly
+// doesn't spam the RPC.
+let lastLoadAt = Date.now();
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  if (Date.now() - lastLoadAt < 10_000) return;
+  lastLoadAt = Date.now();
+  loadAll();
+  loadKeys();
+});
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3118c88f274a4ce69428687589707360"}'></script>
 <!-- Crisp founder chat -->
