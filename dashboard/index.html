@@ -390,7 +390,11 @@
         <input type="number" id="customAmt" min="5" max="500" placeholder="Custom" style="width:96px;background:#fff;border:1px solid var(--line2);border-radius:999px;color:var(--text);font-size:14.5px;padding:10px 16px;font-family:inherit">
         <button class="btn ghost" id="customTopup">Add funds</button>
       </div>
-      <p class="muted" style="font-size:13px;margin-top:10px">One-time card payment via Stripe ($5–$500). No subscription. Credits never expire.</p>
+      <p class="muted" style="font-size:13px;margin-top:10px">One-time card payment via Stripe ($5–$500). No subscription. Credits never expire. Buying for a company? Tick <b>“I’m purchasing as a business”</b> at checkout to put your company name and VAT ID on the invoice.</p>
+      <div style="margin-top:14px">
+        <button class="btn ghost sm" id="portalBtn">Business details & invoices ↗</button>
+        <span class="muted" id="portalMsg" style="font-size:13px;margin-left:10px"></span>
+      </div>
       <h2>Auto-recharge</h2>
       <div class="card" style="max-width:640px">
         <div class="ar-row">
@@ -405,7 +409,7 @@
       </div>
       <h2>Payment history</h2>
       <div class="card">
-        <table id="ledgerTable"><thead><tr><th>Date</th><th>Type</th><th class="r">Amount</th><th class="r">Receipt</th></tr></thead><tbody></tbody></table>
+        <table id="ledgerTable"><thead><tr><th>Date</th><th>Type</th><th class="r">Amount</th><th class="r">Invoice</th></tr></thead><tbody></tbody></table>
       </div>
     </section>
   </main>
@@ -553,6 +557,21 @@ $("arSave").addEventListener("click", async () => {
   $("arSave").disabled = false;
 });
 
+$("portalBtn").addEventListener("click", async () => {
+  $("portalBtn").disabled = true;
+  $("portalMsg").textContent = "";
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${API}/billing/portal`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  }).then((r) => r.json()).catch(() => null);
+  if (res?.portal_url) location.href = res.portal_url;
+  else {
+    $("portalMsg").textContent = res?.detail || "Portal unavailable right now.";
+    $("portalBtn").disabled = false;
+  }
+});
+
 /* ---------- keys ---------- */
 $("createKey").addEventListener("click", async () => {
   $("createKey").disabled = true;
@@ -645,9 +664,14 @@ async function loadAll() {
   lb.innerHTML = "";
   for (const l of hist?.payments ?? []) {
     const tr = document.createElement("tr");
+    const doc = l.invoice_url
+      ? `<a href="${l.invoice_url}" target="_blank" style="text-decoration:underline">Invoice</a>`
+      : l.receipt_url
+        ? `<a href="${l.receipt_url}" target="_blank" style="text-decoration:underline">Receipt</a>`
+        : '<span class="muted">—</span>';
     tr.innerHTML = `<td class="muted">${l.date.slice(0, 10)}</td><td>${l.type}</td>
       <td class="mono r ok">+$${Number(l.amount_usd).toFixed(2)}</td>
-      <td class="r">${l.receipt_url ? `<a href="${l.receipt_url}" target="_blank" style="text-decoration:underline">Receipt</a>` : '<span class="muted">—</span>'}</td>`;
+      <td class="r">${doc}</td>`;
     lb.appendChild(tr);
   }
   loadAutoRecharge();
