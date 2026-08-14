@@ -589,10 +589,11 @@
         <button class="btn" data-amt="5">$5</button>
         <button class="btn" data-amt="20">$20</button>
         <button class="btn" data-amt="50">$50</button>
-        <input type="number" id="customAmt" min="5" max="500" placeholder="Custom amount $" style="width:210px;background:#fff;border:1px solid var(--line2);border-radius:999px;color:var(--text);font-size:14.5px;padding:10px 16px;font-family:inherit">
+        <input type="number" id="customAmt" min="5" placeholder="Custom amount $" style="width:210px;background:#fff;border:1px solid var(--line2);border-radius:999px;color:var(--text);font-size:14.5px;padding:10px 16px;font-family:inherit">
         <button class="btn ghost" id="customTopup">Add funds</button>
       </div>
-      <p class="muted" style="font-size:13px;margin-top:10px" id="topupNote">One-time card payment via Stripe ($5–$500, charged in USD). No subscription. Credits never expire. Buying for a company? Tick <b>“I’m purchasing as a business”</b> at checkout to put your company name and VAT ID on the invoice.</p>
+      <p class="bad hidden" id="topupErr" style="font-size:13px;margin-top:8px"></p>
+      <p class="muted" style="font-size:13px;margin-top:10px" id="topupNote">One-time card payment via Stripe (from $5, charged in USD). No subscription. Credits never expire.</p>
       <h2>Auto-recharge</h2>
       <div class="card" style="max-width:640px">
         <div class="ar-row">
@@ -747,7 +748,7 @@ async function doTopup(amount, btn) {
     const res = await fetch(`${API}/billing/topup`, { method: "POST", headers: auth, body: JSON.stringify({ amount_usd: amount }) })
       .then((r) => r.json()).catch(() => null);
     if (res?.checkout_url) location.href = res.checkout_url;
-    else { msg("Top-up unavailable right now — try again in a minute.", "bad"); btn.disabled = false; }
+    else { topupErr(res?.detail || "Top-up unavailable right now — try again in a minute."); btn.disabled = false; }
   };
   const oneclick = window.f42Card && localStorage.getItem("f42_oneclick") !== "0";
   if (oneclick) {
@@ -793,9 +794,19 @@ document.querySelectorAll("[data-amt]").forEach((b) =>
   b.addEventListener("click", () => doTopup(Number(b.dataset.amt), b)),
 );
 
+function topupErr(t) {
+  $("topupErr").textContent = t || "";
+  $("topupErr").classList.toggle("hidden", !t);
+}
+$("customAmt").addEventListener("input", () => topupErr(""));
 $("customTopup").addEventListener("click", () => {
   const amt = Number($("customAmt").value);
-  if (!Number.isFinite(amt) || amt < 5 || amt > 500) { msg("Enter an amount between $5 and $500.", "bad"); return; }
+  if (!Number.isFinite(amt) || amt < 5) { topupErr("Minimum top-up is $5."); return; }
+  if (amt > 10000) {
+    topupErr("For top-ups this size, talk to us directly — we’ll sort it out.");
+    try { window.f42ShowChat(); window.$crisp.push(["do", "chat:open"]); } catch {}
+    return;
+  }
   doTopup(amt, $("customTopup"));
 });
 
