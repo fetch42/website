@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fetch42 — Dashboard</title>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -270,6 +271,7 @@
         <div class="divider">or</div>
         <form id="loginForm">
           <input type="email" id="email" placeholder="you@company.com" required autocomplete="email">
+          <div id="tsBox" style="margin:10px 0 2px;display:flex;justify-content:center"></div>
           <button type="submit" id="loginBtn" class="btn auth-submit">Continue with email</button>
         </form>
         <p class="auth-foot">By continuing you agree to the <a href="/legal.html#terms">Terms</a> and <a href="/legal.html#privacy">Privacy Policy</a>.</p>
@@ -669,6 +671,25 @@
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/* Turnstile: invisible bot check on magic-link auth (Supabase enforces server-side) */
+const TS_SITEKEY = "0x4AAAAAAEQH1d53RIbLPOKt";
+window.__tsId = null;
+(function initTs() {
+  if (window.turnstile) {
+    try { window.__tsId = turnstile.render("#tsBox", { sitekey: TS_SITEKEY, appearance: "interaction-only", "refresh-expired": "auto" }); } catch {}
+  } else setTimeout(initTs, 150);
+})();
+async function tsToken() {
+  if (window.__tsId === null) return "";
+  for (let i = 0; i < 40; i++) {
+    const t = turnstile.getResponse(window.__tsId);
+    if (t) return t;
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  return "";
+}
+function tsReset() { try { turnstile.reset(window.__tsId); } catch {} }
+
 const supabase = createClient(
   "https://ubdleklnejuayewxbqev.supabase.co",
   "sb_publishable_GC7OJKnc43BQbjKRThE8KQ_HMFpp1q5",
@@ -695,10 +716,12 @@ $("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("loginBtn").disabled = true;
   const email = $("email").value;
+  const captchaToken = await tsToken();
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: "https://fetch42.ai/dashboard/" },
+    options: { emailRedirectTo: "https://fetch42.ai/dashboard/", captchaToken },
   });
+  tsReset();
   if (error) {
     msg(`Could not send link: ${error.message}`, "bad");
   } else {
