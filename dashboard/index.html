@@ -839,9 +839,11 @@ function renderAR(cfg) {
   $("arThreshold").value = cfg.threshold_usd;
   window.f42Card = cfg.has_saved_card ? (cfg.card_last4 || "on file") : null;
   if (cfg.has_saved_card) renderOneclickNote(cfg.card_last4);
-  $("arStatus").textContent = cfg.has_saved_card
-    ? (cfg.enabled ? "Active — your saved card is charged automatically. Checked every 10 minutes, at most once per hour." : "Off — your card is saved, flip the switch to enable.")
-    : "Make one top-up first — Stripe saves your card securely during checkout, then you can enable auto-recharge.";
+  const arText = cfg.has_saved_card
+    ? (cfg.enabled ? "Active" : "")
+    : "Make one top-up first — your card is saved securely at checkout.";
+  $("arStatus").textContent = arText;
+  $("arStatus").style.display = arText ? "" : "none";
 }
 async function loadAutoRecharge() {
   const { data: { session } } = await supabase.auth.getSession();
