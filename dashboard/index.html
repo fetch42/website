@@ -581,7 +581,7 @@
       <h1>Billing</h1>
       <p class="sub" id="accEmail">…</p>
       <div class="cards" style="max-width:640px">
-        <div class="stat"><div class="label">Balance</div><div class="val" id="accBalance">—</div><div class="hint">Prepaid · unused balance refundable anytime</div></div>
+        <div class="stat"><div class="label">Balance</div><div class="val" id="accBalance">—</div><div class="hint">Prepaid · credits never expire</div></div>
       </div>
       <h2>Top up</h2>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
@@ -738,19 +738,30 @@ async function doTopup(amount, btn) {
   btn.disabled = true;
   const { data: { session } } = await supabase.auth.getSession();
   const auth = { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" };
-  if (window.f42Card && !window.f42ForceCheckout) {
+  const goCheckout = async () => {
+    const res = await fetch(`${API}/billing/topup`, { method: "POST", headers: auth, body: JSON.stringify({ amount_usd: amount }) })
+      .then((r) => r.json()).catch(() => null);
+    if (res?.checkout_url) location.href = res.checkout_url;
+    else { msg("Top-up unavailable right now — try again in a minute.", "bad"); btn.disabled = false; }
+  };
+  const oneclick = window.f42Card && localStorage.getItem("f42_oneclick") !== "0";
+  if (oneclick) {
     const prev = btn.textContent;
     btn.textContent = "Charging…";
     const r = await fetch(`${API}/billing/topup-instant`, { method: "POST", headers: auth, body: JSON.stringify({ amount_usd: amount }) })
       .then((x) => x.json()).catch(() => null);
     btn.textContent = prev;
     if (r?.ok) { btn.disabled = false; loadAll(); void celebrateTopup(r.invoice_id); return; }
-    // bank wants 3DS / charge failed → fall through to hosted checkout
+    if (r?.error === "charge_failed") {
+      btn.disabled = false;
+      confirmDialog("Payment didn't go through",
+        `Your bank declined the 1-click charge - it probably wants you to approve it. The full checkout lets you confirm in your bank app.`,
+        "Open full checkout", false, goCheckout);
+      return;
+    }
+    // no saved card / transient error → hosted checkout
   }
-  const res = await fetch(`${API}/billing/topup`, { method: "POST", headers: auth, body: JSON.stringify({ amount_usd: amount }) })
-    .then((r) => r.json()).catch(() => null);
-  if (res?.checkout_url) location.href = res.checkout_url;
-  else { msg("Top-up unavailable right now — try again in a minute.", "bad"); btn.disabled = false; }
+  await goCheckout();
 }
 document.querySelectorAll("[data-amt]").forEach((b) =>
   b.addEventListener("click", () => doTopup(Number(b.dataset.amt), b)),
@@ -774,8 +785,12 @@ async function loadAutoRecharge() {
   $("arThreshold").value = cfg.threshold_usd;
   window.f42Card = cfg.has_saved_card ? (cfg.card_last4 || "on file") : null;
   if (cfg.has_saved_card) {
-    $("topupNote").innerHTML = `⚡ <b>1-click top-up</b> with your saved card ${cfg.card_last4 ? "••••" + cfg.card_last4 : "on file"} — instant, no redirect ($5–$500, USD). Invoices land in Payment history. <a href="#" id="fullCheckoutLink" style="text-decoration:underline">Use the full checkout instead</a> (e.g. to pay as a business or change card).`;
-    document.getElementById("fullCheckoutLink").addEventListener("click", (e) => { e.preventDefault(); window.f42ForceCheckout = !window.f42ForceCheckout; e.target.textContent = window.f42ForceCheckout ? "1-click re-enabled? click again" : "Use the full checkout instead"; e.target.textContent = window.f42ForceCheckout ? "Full checkout ON for next top-up - click to undo" : "Use the full checkout instead"; });
+    const on = localStorage.getItem("f42_oneclick") !== "0";
+    $("topupNote").innerHTML = `<span style="display:inline-flex;align-items:center;gap:9px;vertical-align:middle">
+      <label class="switch" style="transform:scale(.85)"><input type="checkbox" id="oneclickToggle" ${on ? "checked" : ""}><span class="track"></span></label>
+      ⚡ 1-click top-up · card ••••${cfg.card_last4 ?? ""}</span>`;
+    document.getElementById("oneclickToggle").addEventListener("change", (e) =>
+      localStorage.setItem("f42_oneclick", e.target.checked ? "1" : "0"));
   }
   $("arStatus").textContent = cfg.has_saved_card
     ? (cfg.enabled ? "Active — your saved card is charged automatically. Checked every 10 minutes, at most once per hour." : "Off — your card is saved, flip the switch to enable.")
