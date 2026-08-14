@@ -383,6 +383,37 @@
   </div>
 </div>
 
+<!-- export modal -->
+<div id="exportModal" class="wiz-overlay hidden">
+  <div class="wiz-modal" style="max-width:440px">
+    <div class="wiz-body" style="min-height:0;text-align:left;padding:26px">
+      <p style="font-size:17px;font-weight:700;margin-bottom:8px">Export requests</p>
+      <label class="km-label">Period</label>
+      <select id="expRange" class="km-input">
+        <option value="all" selected>All time</option>
+        <option value="30d">Last 30 days</option>
+        <option value="1y">Last year</option>
+        <option value="custom">Custom range…</option>
+      </select>
+      <span id="expCustom" class="hidden" style="display:flex;gap:6px;align-items:center;margin-top:8px">
+        <input type="date" id="expFrom" class="km-input" style="width:auto">
+        <span class="muted">→</span>
+        <input type="date" id="expTo" class="km-input" style="width:auto">
+      </span>
+      <label class="km-label">Format</label>
+      <select id="expFormat" class="km-input">
+        <option value="csv" selected>CSV</option>
+        <option value="gz">CSV (gzip)</option>
+      </select>
+      <p class="muted" id="expMsg" style="font-size:13px;margin-top:10px;min-height:18px"></p>
+    </div>
+    <div class="wiz-foot">
+      <button class="btn ghost" id="expCancel">Cancel</button>
+      <button class="btn" id="expGo">Export</button>
+    </div>
+  </div>
+</div>
+
 <!-- confirm dialog -->
 <div id="confirmModal" class="wiz-overlay hidden">
   <div class="wiz-modal" style="max-width:440px">
@@ -409,7 +440,7 @@
     <button class="nav-item active" data-page="overview"><span class="ic">▦</span>Overview</button>
     <button class="nav-item" data-page="keys"><span class="ic">⚿</span>API Keys</button>
     <button class="nav-item" data-page="endpoints"><span class="ic">⌘</span>Endpoints</button>
-    <button class="nav-item" data-page="usage"><span class="ic">〰</span>Usage</button>
+    <button class="nav-item" data-page="usage"><span class="ic">〰</span>Activity</button>
     <button class="nav-item" data-page="account"><span class="ic">◍</span>Billing</button>
     <button class="nav-item" id="contactUs" style="margin-top:auto"><span class="ic">✉</span>Contact us</button>
     <div class="side-foot" style="margin-top:0">
@@ -459,11 +490,52 @@
     </section>
 
     <section data-sect="usage" class="hidden">
-      <h1>Usage</h1>
-      <p class="sub">Your most recent API calls. Failed calls are never charged.</p>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div>
+          <h1>Activity</h1>
+          <p class="sub">Spend, requests and every call — failed calls are never charged.</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="actRange" class="km-input" style="width:auto">
+            <option value="24h">Past 24 hours</option>
+            <option value="7d" selected>Past 7 days</option>
+            <option value="30d">Past 30 days</option>
+            <option value="1y">Past year</option>
+            <option value="all">All time</option>
+            <option value="custom">Custom range…</option>
+          </select>
+          <span id="actCustom" class="hidden" style="display:flex;gap:6px;align-items:center">
+            <input type="date" id="actFrom" class="km-input" style="width:auto">
+            <span class="muted">→</span>
+            <input type="date" id="actTo" class="km-input" style="width:auto">
+          </span>
+        </div>
+      </div>
+      <div class="cards" style="margin-top:6px">
+        <div class="stat"><div class="label">Total spend</div><div class="val" id="actSpend">—</div><div class="hint" id="actSpendDelta"></div></div>
+        <div class="stat"><div class="label">Requests</div><div class="val" id="actReqs">—</div><div class="hint" id="actReqsDelta"></div></div>
+      </div>
+      <h2>Breakdown by key</h2>
       <div class="card">
-        <table id="callsTable"><thead><tr><th>Time (UTC)</th><th>Endpoint</th><th>Provider</th><th class="r">Price</th><th class="r">ms</th><th></th></tr></thead><tbody></tbody></table>
-        <p class="muted hidden" id="noCalls" style="margin-top:10px;font-size:13.5px">No calls yet — create a key and run the quick-start curl from Overview.</p>
+        <table id="keyBreakTable"><thead><tr><th>Key</th><th class="r">Requests</th><th class="r">Total spent</th></tr></thead><tbody></tbody></table>
+        <p class="muted hidden" id="noBreak" style="margin-top:10px;font-size:13.5px">No usage in this period.</p>
+      </div>
+      <h2 style="display:flex;align-items:center;justify-content:space-between">Requests
+        <span style="display:flex;gap:8px;align-items:center;font-weight:400">
+          <select id="actPageSize" class="km-input" style="width:auto;font-size:13px;padding:7px 10px">
+            <option>10</option><option selected>20</option><option>50</option><option>100</option>
+          </select>
+          <button class="btn ghost sm" id="actExport">Export CSV</button>
+        </span>
+      </h2>
+      <div class="card">
+        <table id="callsTable"><thead><tr><th>Time (UTC)</th><th>Endpoint</th><th>Key</th><th>Provider</th><th class="r">Price</th><th class="r">ms</th><th></th></tr></thead><tbody></tbody></table>
+        <p class="muted hidden" id="noCalls" style="margin-top:10px;font-size:13.5px">No calls in this period.</p>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px">
+          <span class="muted" id="actPageInfo" style="font-size:13px"></span>
+          <button class="btn ghost sm" id="actPrev">‹ Prev</button>
+          <button class="btn ghost sm" id="actNext">Next ›</button>
+        </div>
       </div>
     </section>
 
@@ -879,25 +951,15 @@ async function loadAll() {
 
   const since = new Date(Date.now() - 30 * 864e5).toISOString();
   const { data: calls } = await supabase.from("calls")
-    .select("ts,endpoint,provider,posted_price_usd,latency_ms,ok").gte("ts", since).order("ts", { ascending: false }).limit(200);
+    .select("posted_price_usd,ok").gte("ts", since).limit(1000);
   const okCalls = (calls ?? []).filter((c) => c.ok);
   $("ovSpend").textContent = `$${okCalls.reduce((s, c) => s + Number(c.posted_price_usd ?? 0), 0).toFixed(3)}`;
   $("ovCalls").textContent = String((calls ?? []).length);
   const failed = (calls ?? []).length - okCalls.length;
   $("ovFail").textContent = failed ? `${failed} failed (not charged)` : "All succeeded";
 
-  const tb = $("callsTable").querySelector("tbody");
-  tb.innerHTML = "";
-  for (const c of (calls ?? []).slice(0, 50)) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="muted mono">${c.ts.slice(0, 19).replace("T", " ")}</td><td class="mono">${c.endpoint}</td>
-      <td>${c.provider}</td><td class="mono r">${c.posted_price_usd ? "$" + Number(c.posted_price_usd).toFixed(3) : "—"}</td>
-      <td class="mono r">${c.latency_ms}</td><td class="${c.ok ? "ok" : "bad"}">${c.ok ? "ok" : "failed"}</td>`;
-    tb.appendChild(tr);
-  }
-  $("noCalls").classList.toggle("hidden", (calls ?? []).length > 0);
-
   await loadKeys();
+  loadActivity();
 
   const { data: prices } = await supabase.from("prices").select("endpoint,price_usd").eq("active", true).order("endpoint");
   const eb = $("endpointsTable").querySelector("tbody");
@@ -1100,6 +1162,143 @@ $("copyPrompt").addEventListener("click", () => {
   navigator.clipboard.writeText(PROMPTS[curPrompt].text);
   $("copyPrompt").textContent = "Copied — paste it into " + (localStorage.getItem("f42_harness") || "your agent") + " ✓";
   setTimeout(() => { $("copyPrompt").textContent = "Copy this prompt"; }, 2200);
+});
+
+/* ---------- activity ---------- */
+const RANGES = { "24h": 864e5, "7d": 7 * 864e5, "30d": 30 * 864e5, "1y": 365 * 864e5 };
+let actPage = 0;
+function actWindow() {
+  const v = $("actRange").value;
+  if (v === "all") return { from: null, to: null };
+  if (v === "custom") {
+    const f = $("actFrom").value ? new Date($("actFrom").value + "T00:00:00Z") : null;
+    const t = $("actTo").value ? new Date($("actTo").value + "T23:59:59Z") : null;
+    return { from: f, to: t };
+  }
+  return { from: new Date(Date.now() - RANGES[v]), to: null };
+}
+function fmtMoney(n) { return `$${Number(n).toFixed(3)}`; }
+function fmtCount(n) { return n >= 10000 ? `${(n / 1000).toFixed(0)}K` : String(n); }
+async function loadActivity() {
+  const { from, to } = actWindow();
+  const args = { p_from: from ? from.toISOString() : null, p_to: to ? to.toISOString() : null };
+  const { data: stats } = await supabase.rpc("activity_stats", args);
+  $("actSpend").textContent = fmtMoney(stats?.spend_usd ?? 0);
+  $("actReqs").textContent = fmtCount(stats?.requests ?? 0);
+  // vs previous period (equal-length window before `from`)
+  if (from) {
+    const end = to ?? new Date();
+    const prevFrom = new Date(from.getTime() - (end.getTime() - from.getTime()));
+    const { data: prev } = await supabase.rpc("activity_stats", { p_from: prevFrom.toISOString(), p_to: from.toISOString() });
+    const delta = (cur, old) => {
+      if (!old) return "";
+      const pct = ((cur - old) / old) * 100;
+      const up = pct >= 0;
+      return `<span class="${up ? "ok" : "bad"}">${up ? "↑" : "↓"} ${Math.abs(pct).toFixed(1)}%</span> vs prev period`;
+    };
+    $("actSpendDelta").innerHTML = delta(Number(stats?.spend_usd ?? 0), Number(prev?.spend_usd ?? 0));
+    $("actReqsDelta").innerHTML = delta(Number(stats?.requests ?? 0), Number(prev?.requests ?? 0));
+  } else {
+    $("actSpendDelta").textContent = "";
+    $("actReqsDelta").textContent = "";
+  }
+  // per-key breakdown (needs names incl. deleted keys)
+  const { data: allKeys } = await supabase.from("api_keys").select("id,name,key_prefix");
+  const nameOf = Object.fromEntries((allKeys ?? []).map((k) => [k.id, k.name]));
+  const kb = $("keyBreakTable").querySelector("tbody");
+  kb.innerHTML = "";
+  const keys = stats?.keys ?? [];
+  for (const k of keys) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td style="font-weight:600">${nameOf[k.api_key_id] ?? "(deleted key)"}</td>
+      <td class="mono r">${k.requests}</td><td class="mono r">${fmtMoney(k.spend_usd)}</td>`;
+    kb.appendChild(tr);
+  }
+  $("noBreak").classList.toggle("hidden", keys.length > 0);
+  await loadCallsPage();
+}
+async function loadCallsPage() {
+  const { from, to } = actWindow();
+  const size = Number($("actPageSize").value);
+  let q = supabase.from("calls")
+    .select("ts,endpoint,provider,posted_price_usd,latency_ms,ok,api_key_id", { count: "exact" })
+    .order("ts", { ascending: false })
+    .range(actPage * size, actPage * size + size - 1);
+  if (from) q = q.gte("ts", from.toISOString());
+  if (to) q = q.lte("ts", to.toISOString());
+  const { data: calls, count } = await q;
+  const { data: allKeys } = await supabase.from("api_keys").select("id,name");
+  const nameOf = Object.fromEntries((allKeys ?? []).map((k) => [k.id, k.name]));
+  const tb = $("callsTable").querySelector("tbody");
+  tb.innerHTML = "";
+  for (const c2 of calls ?? []) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="muted mono">${c2.ts.slice(0, 19).replace("T", " ")}</td><td class="mono">${c2.endpoint}</td>
+      <td class="muted">${nameOf[c2.api_key_id] ?? "—"}</td>
+      <td>${c2.provider}</td><td class="mono r">${c2.posted_price_usd ? "$" + Number(c2.posted_price_usd).toFixed(3) : "—"}</td>
+      <td class="mono r">${c2.latency_ms}</td><td class="${c2.ok ? "ok" : "bad"}">${c2.ok ? "ok" : "failed"}</td>`;
+    tb.appendChild(tr);
+  }
+  const total = count ?? 0;
+  const pages = Math.max(1, Math.ceil(total / size));
+  $("actPageInfo").textContent = total ? `Page ${actPage + 1} of ${pages} · ${total} requests` : "";
+  $("actPrev").disabled = actPage === 0;
+  $("actNext").disabled = actPage >= pages - 1;
+  $("noCalls").classList.toggle("hidden", total > 0);
+}
+$("actRange").addEventListener("change", () => {
+  $("actCustom").classList.toggle("hidden", $("actRange").value !== "custom");
+  actPage = 0; loadActivity();
+});
+$("actFrom").addEventListener("change", () => { actPage = 0; loadActivity(); });
+$("actTo").addEventListener("change", () => { actPage = 0; loadActivity(); });
+$("actPageSize").addEventListener("change", () => { actPage = 0; loadCallsPage(); });
+$("actPrev").addEventListener("click", () => { if (actPage > 0) { actPage--; loadCallsPage(); } });
+$("actNext").addEventListener("click", () => { actPage++; loadCallsPage(); });
+
+/* ---------- export ---------- */
+$("actExport").addEventListener("click", () => { $("exportModal").classList.remove("hidden"); $("app").classList.add("blur"); $("expMsg").textContent = ""; });
+$("expCancel").addEventListener("click", () => { $("exportModal").classList.add("hidden"); $("app").classList.remove("blur"); });
+$("expRange").addEventListener("change", () => $("expCustom").classList.toggle("hidden", $("expRange").value !== "custom"));
+$("expGo").addEventListener("click", async () => {
+  $("expGo").disabled = true;
+  $("expMsg").textContent = "Exporting…";
+  let from = null, to = null;
+  const v = $("expRange").value;
+  if (v === "30d") from = new Date(Date.now() - 30 * 864e5);
+  else if (v === "1y") from = new Date(Date.now() - 365 * 864e5);
+  else if (v === "custom") {
+    from = $("expFrom").value ? new Date($("expFrom").value + "T00:00:00Z") : null;
+    to = $("expTo").value ? new Date($("expTo").value + "T23:59:59Z") : null;
+  }
+  const rows = [["ts", "endpoint", "key", "provider", "price_usd", "latency_ms", "status"]];
+  const { data: allKeys } = await supabase.from("api_keys").select("id,name");
+  const nameOf = Object.fromEntries((allKeys ?? []).map((k) => [k.id, k.name]));
+  for (let off = 0; ; off += 1000) {
+    let q = supabase.from("calls").select("ts,endpoint,provider,posted_price_usd,latency_ms,ok,api_key_id")
+      .order("ts", { ascending: false }).range(off, off + 999);
+    if (from) q = q.gte("ts", from.toISOString());
+    if (to) q = q.lte("ts", to.toISOString());
+    const { data: batch } = await q;
+    for (const r of batch ?? []) {
+      rows.push([r.ts, r.endpoint, nameOf[r.api_key_id] ?? "", r.provider, r.posted_price_usd ?? "", r.latency_ms, r.ok ? "ok" : "failed"]);
+    }
+    if (!batch || batch.length < 1000) break;
+  }
+  const csv = rows.map((r) => r.map((x) => `"${String(x).replaceAll('"', '""')}"`).join(",")).join("\n");
+  let blob = new Blob([csv], { type: "text/csv" });
+  let fname = `fetch42-requests-${new Date().toISOString().slice(0, 10)}.csv`;
+  if ($("expFormat").value === "gz" && typeof CompressionStream !== "undefined") {
+    const stream = blob.stream().pipeThrough(new CompressionStream("gzip"));
+    blob = await new Response(stream).blob();
+    fname += ".gz";
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = fname;
+  a.click();
+  $("expMsg").textContent = `Exported ${rows.length - 1} requests.`;
+  $("expGo").disabled = false;
 });
 
 /* ---------- init ---------- */
