@@ -256,7 +256,7 @@
         <div id="wizKeyMsg" class="bad" style="min-height:0;font-size:13.5px"></div>
         <div class="keybox mono" id="wizKeyValue" style="margin-top:4px">creating your key…</div>
         <button id="wizCopyKey" class="btn ghost sm">Copy key</button>
-        <p class="muted" style="font-size:13px;margin-top:14px">Shown only once — we store just a hash. Daily budget cap: $5 by default. Your agent will ask for it after reading SKILL.md.</p>
+        <p class="muted" style="font-size:13px;margin-top:14px">Shown only once — we store just a hash. No expiration, no spending cap — add limits anytime under API Keys. Your agent will ask for it after reading SKILL.md.</p>
         </div>
       </div>
 
@@ -347,14 +347,14 @@
 
     <section data-sect="keys" class="hidden">
       <h1>API Keys</h1>
-      <p class="sub">Keys are shown once at creation — only a hash is stored. Default cap: $5/day per key.</p>
+      <p class="sub">Keys are shown once at creation — only a hash is stored. No expiration and no spending cap by default — edit a key to add limits.</p>
       <div id="newKey" class="hidden">
         <p><b>Your new API key — copy it now, it is shown only once:</b></p>
         <div class="keybox mono" id="newKeyValue"></div>
         <button id="copyKey" class="btn ghost sm" style="margin-bottom:14px">Copy</button>
       </div>
       <div class="card">
-        <table id="keysTable"><thead><tr><th>Key</th><th>Name</th><th>Daily cap</th><th>Created</th><th></th></tr></thead><tbody></tbody></table>
+        <table id="keysTable"><thead><tr><th>Key</th><th>Name</th><th>Daily cap</th><th>Expires</th><th>Created</th><th></th></tr></thead><tbody></tbody></table>
       </div>
       <button id="createKey" class="btn">Create key ›</button>
     </section>
@@ -592,20 +592,38 @@ $("copyKey").addEventListener("click", () => navigator.clipboard.writeText($("ne
 
 async function loadKeys() {
   const { data: keys } = await supabase.from("api_keys")
-    .select("id,key_prefix,name,daily_cap_usd,created_at,revoked_at").order("created_at");
+    .select("id,key_prefix,name,daily_cap_usd,expires_at,created_at,revoked_at").order("created_at");
   const tb = $("keysTable").querySelector("tbody");
   tb.innerHTML = "";
   for (const k of keys ?? []) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="mono">${k.key_prefix}…</td><td>${k.name}</td><td>$${Number(k.daily_cap_usd).toFixed(2)}/day</td>
+    const cap = k.daily_cap_usd == null ? '<span class="muted">unlimited</span>' : `$${Number(k.daily_cap_usd).toFixed(2)}/day`;
+    const exp = k.expires_at ? k.expires_at.slice(0, 10) : '<span class="muted">never</span>';
+    tr.innerHTML = `<td class="mono">${k.key_prefix}…</td><td>${k.name}</td><td>${cap}</td><td>${exp}</td>
       <td class="muted">${k.created_at.slice(0, 10)}</td>
-      <td>${k.revoked_at ? '<span class="bad">revoked</span>' : `<button class="btn ghost sm" data-revoke="${k.id}">Revoke</button>`}</td>`;
+      <td>${k.revoked_at ? '<span class="bad">revoked</span>' : `<button class="btn ghost sm" data-edit="${k.id}">Edit</button> <button class="btn ghost sm" data-revoke="${k.id}">Revoke</button>`}</td>`;
     tb.appendChild(tr);
   }
   tb.querySelectorAll("[data-revoke]").forEach((b) =>
     b.addEventListener("click", async () => {
       if (!confirm("Revoke this key? Agents using it stop working immediately.")) return;
       await supabase.from("api_keys").update({ revoked_at: new Date().toISOString() }).eq("id", b.dataset.revoke);
+      loadKeys();
+    }),
+  );
+  tb.querySelectorAll("[data-edit]").forEach((b) =>
+    b.addEventListener("click", async () => {
+      const capIn = prompt("Daily spending cap in USD (leave empty for unlimited):", "");
+      if (capIn === null) return;
+      const expIn = prompt("Expiration date YYYY-MM-DD (leave empty for never):", "");
+      if (expIn === null) return;
+      const patch = {};
+      patch.daily_cap_usd = capIn.trim() === "" ? null : Number(capIn);
+      if (patch.daily_cap_usd !== null && (!Number.isFinite(patch.daily_cap_usd) || patch.daily_cap_usd <= 0)) { msg("Cap must be a positive number.", "bad"); return; }
+      patch.expires_at = expIn.trim() === "" ? null : expIn.trim() + "T23:59:59Z";
+      if (patch.expires_at && isNaN(Date.parse(patch.expires_at))) { msg("Bad date — use YYYY-MM-DD.", "bad"); return; }
+      const { error } = await supabase.from("api_keys").update(patch).eq("id", b.dataset.edit);
+      msg(error ? "Could not update key." : "Key limits updated.", error ? "bad" : "ok");
       loadKeys();
     }),
   );
