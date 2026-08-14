@@ -160,6 +160,10 @@
   .ma-answer { align-self:flex-start; max-width:92%; border:1px solid #2a2a32; color:#fff; border-radius:14px 14px 14px 4px;
     padding:9px 13px; font-size:13px; line-height:1.5; }
   .ma-foot { border-top:1px solid #26262c; padding:8px 14px; font-family:"Geist Mono", monospace; font-size:10.5px; color:#8a8a93; }
+  .km-label { display:block; font-size:12.5px; font-weight:600; margin:14px 0 6px; text-align:left; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .km-input { width:100%; background:#fff; border:1px solid var(--line2); border-radius:10px; padding:11px 13px;
+    font-family:inherit; font-size:14.5px; color:var(--text); }
+  .km-input:focus { outline:none; border-color:var(--muted); }
   .prompt-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .prompt-card { text-align:left; background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; color:var(--text); cursor:pointer; }
   .prompt-card:hover { border-color:var(--muted); }
@@ -303,6 +307,27 @@
         <button id="wizSkip" class="btn ghost sm hidden" style="border:0;color:var(--muted)">Skip</button>
         <button id="wizNext" class="btn sm">Next →</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- key create/edit modal -->
+<div id="keyModal" class="wiz-overlay hidden">
+  <div class="wiz-modal" style="max-width:460px">
+    <div class="wiz-head"><img src="/assets/mark.svg" alt=""><span id="kmTitle">Create API key</span></div>
+    <div class="wiz-body" style="min-height:0;text-align:left">
+      <label class="km-label" for="kmName">Name</label>
+      <input type="text" id="kmName" class="km-input" placeholder="e.g. production, my-agent" maxlength="40">
+      <label class="km-label" for="kmCap">Daily spending cap (USD)</label>
+      <input type="number" id="kmCap" class="km-input" min="1" max="10000" placeholder="Leave blank for unlimited">
+      <label class="km-label" for="kmExp">Expiration</label>
+      <input type="date" id="kmExp" class="km-input">
+      <p class="muted" style="font-size:12.5px;margin-top:10px">Both optional — no cap and no expiration by default. Your prepaid balance is always the hard stop.</p>
+      <div class="bad" id="kmMsg" style="min-height:18px;font-size:13px;margin-top:4px"></div>
+    </div>
+    <div class="wiz-foot">
+      <button class="btn ghost sm" id="kmCancel">Cancel</button>
+      <button class="btn sm" id="kmSave">Create key</button>
     </div>
   </div>
 </div>
@@ -572,21 +597,55 @@ $("portalBtn").addEventListener("click", async () => {
   }
 });
 
-/* ---------- keys ---------- */
-$("createKey").addEventListener("click", async () => {
-  $("createKey").disabled = true;
-  const { data: { user } } = await supabase.auth.getUser();
-  const raw = "fk_live_" + [...crypto.getRandomValues(new Uint8Array(24))].map((b) => b.toString(16).padStart(2, "0")).join("");
-  const { error } = await supabase.from("api_keys").insert({
-    user_id: user.id, key_hash: await sha256hex(raw), key_prefix: raw.slice(0, 14), name: "default",
-  });
-  if (error) msg(`Could not create key: ${error.message}`, "bad");
-  else {
+/* ---------- keys: create/edit modal ---------- */
+let kmState = { mode: "create", id: null };
+function openKeyModal(mode, key) {
+  kmState = { mode, id: key?.id ?? null };
+  $("kmTitle").textContent = mode === "create" ? "Create API key" : "Edit key";
+  $("kmSave").textContent = mode === "create" ? "Create key" : "Save changes";
+  $("kmName").value = key?.name ?? "";
+  $("kmCap").value = key?.daily_cap_usd ?? "";
+  $("kmExp").value = key?.expires_at ? key.expires_at.slice(0, 10) : "";
+  $("kmMsg").textContent = "";
+  $("keyModal").classList.remove("hidden");
+  $("app").classList.add("blur");
+  $("kmName").focus();
+}
+function closeKeyModal() {
+  $("keyModal").classList.add("hidden");
+  $("app").classList.remove("blur");
+}
+$("kmCancel").addEventListener("click", closeKeyModal);
+$("keyModal").addEventListener("click", (e) => { if (e.target === $("keyModal")) closeKeyModal(); });
+$("createKey").addEventListener("click", () => openKeyModal("create"));
+
+$("kmSave").addEventListener("click", async () => {
+  const name = $("kmName").value.trim() || "default";
+  const capRaw = $("kmCap").value.trim();
+  const cap = capRaw === "" ? null : Number(capRaw);
+  if (cap !== null && (!Number.isFinite(cap) || cap <= 0)) { $("kmMsg").textContent = "Cap must be a positive number."; return; }
+  const expires = $("kmExp").value ? $("kmExp").value + "T23:59:59Z" : null;
+  if (expires && new Date(expires).getTime() < Date.now()) { $("kmMsg").textContent = "Expiration is in the past."; return; }
+  $("kmSave").disabled = true;
+  if (kmState.mode === "create") {
+    const { data: { user } } = await supabase.auth.getUser();
+    const raw = "fk_live_" + [...crypto.getRandomValues(new Uint8Array(24))].map((b) => b.toString(16).padStart(2, "0")).join("");
+    const { error } = await supabase.from("api_keys").insert({
+      user_id: user.id, key_hash: await sha256hex(raw), key_prefix: raw.slice(0, 14),
+      name, daily_cap_usd: cap, expires_at: expires,
+    });
+    if (error) { $("kmMsg").textContent = `Could not create key: ${error.message}`; $("kmSave").disabled = false; return; }
     $("newKeyValue").textContent = raw;
     $("newKey").classList.remove("hidden");
-    await loadKeys();
+  } else {
+    const { error } = await supabase.from("api_keys")
+      .update({ name, daily_cap_usd: cap, expires_at: expires }).eq("id", kmState.id);
+    if (error) { $("kmMsg").textContent = "Could not update key."; $("kmSave").disabled = false; return; }
+    msg("Key updated.", "ok");
   }
-  $("createKey").disabled = false;
+  $("kmSave").disabled = false;
+  closeKeyModal();
+  await loadKeys();
 });
 $("copyKey").addEventListener("click", () => navigator.clipboard.writeText($("newKeyValue").textContent));
 
@@ -611,21 +670,9 @@ async function loadKeys() {
       loadKeys();
     }),
   );
+  const byId = Object.fromEntries((keys ?? []).map((k) => [k.id, k]));
   tb.querySelectorAll("[data-edit]").forEach((b) =>
-    b.addEventListener("click", async () => {
-      const capIn = prompt("Daily spending cap in USD (leave empty for unlimited):", "");
-      if (capIn === null) return;
-      const expIn = prompt("Expiration date YYYY-MM-DD (leave empty for never):", "");
-      if (expIn === null) return;
-      const patch = {};
-      patch.daily_cap_usd = capIn.trim() === "" ? null : Number(capIn);
-      if (patch.daily_cap_usd !== null && (!Number.isFinite(patch.daily_cap_usd) || patch.daily_cap_usd <= 0)) { msg("Cap must be a positive number.", "bad"); return; }
-      patch.expires_at = expIn.trim() === "" ? null : expIn.trim() + "T23:59:59Z";
-      if (patch.expires_at && isNaN(Date.parse(patch.expires_at))) { msg("Bad date — use YYYY-MM-DD.", "bad"); return; }
-      const { error } = await supabase.from("api_keys").update(patch).eq("id", b.dataset.edit);
-      msg(error ? "Could not update key." : "Key limits updated.", error ? "bad" : "ok");
-      loadKeys();
-    }),
+    b.addEventListener("click", () => openKeyModal("edit", byId[b.dataset.edit])),
   );
 }
 
