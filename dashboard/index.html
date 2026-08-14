@@ -428,10 +428,17 @@
 <div id="successModal" class="wiz-overlay hidden">
   <div class="wiz-modal" style="max-width:420px">
     <div class="wiz-body" style="min-height:0;text-align:center;padding:34px 28px 28px">
-      <svg class="suc-check" viewBox="0 0 56 56"><circle cx="28" cy="28" r="26"/><path d="M17 29l8 8 15-16"/></svg>
-      <p style="font-size:19px;font-weight:700;margin-bottom:4px" id="sucTitle">Payment successful!</p>
-      <p class="suc-amt" id="sucAmt">+$0.00</p>
-      <p class="muted" style="font-size:14px;margin-top:6px" id="sucBal">Updating your balance…</p>
+      <div id="sucWait">
+        <div class="spin" style="margin:8px auto 20px"></div>
+        <p style="font-size:17px;font-weight:600;margin-bottom:4px">Confirming your payment…</p>
+        <p class="muted" style="font-size:13.5px">A couple of seconds, tops.</p>
+      </div>
+      <div id="sucDone" class="hidden">
+        <svg class="suc-check" viewBox="0 0 56 56"><circle cx="28" cy="28" r="26"/><path d="M17 29l8 8 15-16"/></svg>
+        <p style="font-size:19px;font-weight:700;margin-bottom:4px" id="sucTitle">Payment successful!</p>
+        <p class="suc-amt" id="sucAmt"></p>
+        <p class="muted" style="font-size:14px;margin-top:6px" id="sucBal"></p>
+      </div>
     </div>
     <div class="wiz-foot" style="justify-content:center;border-top:0;padding-top:0">
       <button class="btn" id="sucOk">Let&rsquo;s go</button>
@@ -1515,25 +1522,37 @@ $("sucOk").addEventListener("click", () => { $("successModal").classList.add("hi
 async function celebrateTopup(sid) {
   $("successModal").classList.remove("hidden");
   $("app").classList.add("blur");
-  const { data: { session } } = await supabase.auth.getSession();
+  $("sucWait").classList.remove("hidden");
+  $("sucDone").classList.add("hidden");
   const { data: { user } } = await supabase.auth.getUser();
-  const finish = (amount) => supabase.rpc("get_balance", { p_user_id: user.id }).then(({ data: bal }) => {
+  const finish = async (amount) => {
+    const { data: bal } = await supabase.rpc("get_balance", { p_user_id: user.id });
     const newBal = Number(bal ?? 0);
+    $("sucWait").classList.add("hidden");
+    $("sucDone").classList.remove("hidden");
     confettiBurst();
     countUp($("sucAmt"), 0, amount, 2, "+$");
-    $("sucBal").textContent = "";
     countUp($("sucBal"), Math.max(0, newBal - amount), newBal, 2, "New balance: $");
     countUp($("walletBalance"), Math.max(0, newBal - amount), newBal, 2, "$");
     $("ovBalance").textContent = `$${newBal.toFixed(3)}`;
     $("accBalance").textContent = `$${newBal.toFixed(3)}`;
-  });
-  // find THIS payment by its checkout session id (webhook may land before or after us)
-  for (let i = 0; i < 15; i++) {
-    const hist = await fetch(`${API}/billing/history`, { headers: { Authorization: `Bearer ${session.access_token}` } }).then((r) => r.json()).catch(() => null);
-    const mine = sid ? hist?.payments?.find((p) => p.ref === sid) : hist?.payments?.find((p) => p.type !== "grant" && Date.now() - new Date(p.date).getTime() < 3 * 60 * 1000);
-    if (mine) { await finish(Number(mine.amount_usd)); return; }
-    await new Promise((r) => setTimeout(r, 2500));
+  };
+  // fast path: the ledger row for THIS checkout session (direct query, ~150ms)
+  for (let i = 0; i < 40; i++) {
+    let row = null;
+    if (sid) {
+      const { data } = await supabase.from("ledger").select("amount_usd").eq("ref", sid).maybeSingle();
+      row = data;
+    } else {
+      const { data } = await supabase.from("ledger").select("amount_usd,created_at").eq("reason", "topup").order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (data && Date.now() - new Date(data.created_at).getTime() < 3 * 60 * 1000) row = data;
+    }
+    if (row) { await finish(Number(row.amount_usd)); return; }
+    await new Promise((r) => setTimeout(r, 800));
   }
+  $("sucWait").classList.add("hidden");
+  $("sucDone").classList.remove("hidden");
+  $("sucAmt").textContent = "✓";
   $("sucBal").textContent = "Payment received — the credit shows up within a minute. Refresh if needed.";
 }
 
