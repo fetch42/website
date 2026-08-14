@@ -605,7 +605,7 @@
         </div>
         <p class="muted" id="arStatus" style="font-size:13px;margin-top:12px">Loading…</p>
       </div>
-      <h2>Business details</h2>
+      <h2>Billing details</h2>
       <div class="card" style="max-width:640px">
         <div id="bizDetails" class="muted" style="font-size:14px;line-height:1.9">Loading…</div>
         <div style="margin-top:12px">
@@ -817,8 +817,12 @@ if (cachedLast4 !== null) {
 /* ---------- auto-recharge ---------- */
 function renderBiz(d) {
   if (!d) { $("bizDetails").textContent = "No billing details yet - they're collected at your first checkout."; return; }
-  const row = (label, v) => v ? `<div><span style="display:inline-block;width:90px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em">${label}</span> <span style="color:var(--text)">${v}</span></div>` : "";
-  $("bizDetails").innerHTML = (row("Name", d.name) + row("Email", d.email) + row("Address", d.address) + row("Tax ID", d.tax_id)) || "No billing details yet.";
+  const row = (label, v, hint) => `<div><span style="display:inline-block;width:110px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em">${label}</span> ${v ? `<span style="color:var(--text)">${v}</span>` : `<span class="muted">—${hint ? " · " + hint : ""}</span>`}</div>`;
+  $("bizDetails").innerHTML =
+    row("Name", d.name) +
+    row("Email", d.email) +
+    row("Address", d.address) +
+    row("Company / VAT", d.tax_id, "add via Edit, or tick “purchasing as a business” at checkout");
 }
 async function loadBusinessDetails() {
   const { data: { session } } = await supabase.auth.getSession();
