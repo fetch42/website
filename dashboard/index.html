@@ -1120,7 +1120,7 @@ async function loadAll() {
   try { window.$crisp.push(["set", "user:email", [user.email]]); } catch {}
 
   const { data: bal } = await supabase.rpc("get_balance", { p_user_id: user.id });
-  const balTxt = `$${Number(bal ?? 0).toFixed(3)}`;
+  const balTxt = `$${Number(bal ?? 0).toFixed(2)}`;
   if (!window.f42BalAnim || $("successModal").classList.contains("hidden")) {
     window.f42BalAnim = null;
     $("ovBalance").textContent = balTxt;
@@ -1629,8 +1629,8 @@ $("sucOk").addEventListener("click", () => {
   if (a) {
     window.f42BalAnim = null;
     countUp($("walletBalance"), a.from, a.to, 2, "$");
-    countUp($("accBalance"), a.from, a.to, 3, "$");
-    countUp($("ovBalance"), a.from, a.to, 3, "$");
+    countUp($("accBalance"), a.from, a.to, 2, "$");
+    countUp($("ovBalance"), a.from, a.to, 2, "$");
   }
 });
 async function celebrateTopup(sid) {
