@@ -109,6 +109,16 @@
   /* Crisp launcher bubble +25% — applied only while chat is closed (launcher = only visible element) */
   html.f42-chat-closed #crisp-chatbox a { transform: scale(1.25) !important; transform-origin: 100% 100% !important; }
 
+  /* success celebration */
+  .suc-check { width:74px; height:74px; margin:0 auto 6px; display:block; }
+  .suc-check circle { stroke:#0E9F5B; stroke-width:2.6; fill:none; stroke-dasharray:166; stroke-dashoffset:166;
+    animation:sucdraw .5s ease-out forwards; }
+  .suc-check path { stroke:#0E9F5B; stroke-width:3; fill:none; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:48; stroke-dashoffset:48; animation:sucdraw .35s .45s ease-out forwards; }
+  @keyframes sucdraw { to { stroke-dashoffset:0; } }
+  .suc-amt { font-size:34px; font-weight:800; letter-spacing:-.02em; text-align:center; color:var(--text); }
+  #confettiCanvas { position:fixed; inset:0; z-index:70; pointer-events:none; }
+
   /* ---------- onboarding wizard ---------- */
   .spin { width:34px; height:34px; border-radius:50%; border:3px solid var(--line2); border-top-color:var(--accent); animation:spin 1s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
@@ -410,6 +420,21 @@
     <div class="wiz-foot">
       <button class="btn ghost" id="expCancel">Cancel</button>
       <button class="btn" id="expGo">Export</button>
+    </div>
+  </div>
+</div>
+
+<!-- top-up celebration -->
+<div id="successModal" class="wiz-overlay hidden">
+  <div class="wiz-modal" style="max-width:420px">
+    <div class="wiz-body" style="min-height:0;text-align:center;padding:34px 28px 28px">
+      <svg class="suc-check" viewBox="0 0 56 56"><circle cx="28" cy="28" r="26"/><path d="M17 29l8 8 15-16"/></svg>
+      <p style="font-size:19px;font-weight:700;margin-bottom:4px" id="sucTitle">Payment successful!</p>
+      <p class="suc-amt" id="sucAmt">+$0.00</p>
+      <p class="muted" style="font-size:14px;margin-top:6px" id="sucBal">Updating your balance…</p>
+    </div>
+    <div class="wiz-foot" style="justify-content:center;border-top:0;padding-top:0">
+      <button class="btn" id="sucOk">Let&rsquo;s go</button>
     </div>
   </div>
 </div>
@@ -1444,6 +1469,79 @@ $("profPortal").addEventListener("click", async () => {
   else { $("profPortalMsg").textContent = res?.detail || "Portal unavailable."; $("profPortal").disabled = false; }
 });
 
+/* ---------- top-up celebration ---------- */
+function confettiBurst() {
+  const cv = document.createElement("canvas");
+  cv.id = "confettiCanvas";
+  cv.width = innerWidth; cv.height = innerHeight;
+  document.body.appendChild(cv);
+  const ctx = cv.getContext("2d");
+  const colors = ["#C96442", "#0E9F5B", "#F7C31E", "#1A1A1E", "#BA5535"];
+  const parts = Array.from({ length: 90 }, () => ({
+    x: innerWidth / 2 + (Math.random() - 0.5) * 240,
+    y: innerHeight / 2 - 60,
+    vx: (Math.random() - 0.5) * 11,
+    vy: -(Math.random() * 10 + 5),
+    w: Math.random() * 7 + 4,
+    h: Math.random() * 4 + 3,
+    r: Math.random() * Math.PI,
+    vr: (Math.random() - 0.5) * 0.3,
+    col: colors[Math.floor(Math.random() * colors.length)],
+  }));
+  const t0 = performance.now();
+  (function tick(t) {
+    const dt = (t - t0) / 1000;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const p of parts) {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.35; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.col; ctx.globalAlpha = Math.max(0, 1 - dt / 1.9);
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+    }
+    if (dt < 2) requestAnimationFrame(tick); else cv.remove();
+  })(t0);
+}
+function countUp(el, from, to, decimals, prefix) {
+  const t0 = performance.now();
+  const dur = 1200;
+  (function tick(t) {
+    const k = Math.min(1, (t - t0) / dur);
+    const eased = 1 - Math.pow(1 - k, 3);
+    el.textContent = prefix + (from + (to - from) * eased).toFixed(decimals);
+    if (k < 1) requestAnimationFrame(tick);
+  })(t0);
+}
+$("sucOk").addEventListener("click", () => { $("successModal").classList.add("hidden"); $("app").classList.remove("blur"); });
+async function celebrateTopup() {
+  $("successModal").classList.remove("hidden");
+  $("app").classList.add("blur");
+  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: b0 } = await supabase.rpc("get_balance", { p_user_id: user.id });
+  const start = Number(b0 ?? 0);
+  // if the webhook already credited before we loaded, detect via a very recent topup
+  const hist = await fetch(`${API}/billing/history`, { headers: { Authorization: `Bearer ${session.access_token}` } }).then((r) => r.json()).catch(() => null);
+  const latest = hist?.payments?.find((p) => p.type !== "grant");
+  const fresh = latest && Date.now() - new Date(latest.date).getTime() < 3 * 60 * 1000;
+  const finish = (amount, newBal) => {
+    confettiBurst();
+    countUp($("sucAmt"), 0, amount, 2, "+$");
+    $("sucBal").textContent = "";
+    countUp($("sucBal"), Math.max(0, newBal - amount), newBal, 2, "New balance: $");
+    countUp($("walletBalance"), Math.max(0, newBal - amount), newBal, 2, "$");
+    $("ovBalance").textContent = `$${newBal.toFixed(3)}`;
+    $("accBalance").textContent = `$${newBal.toFixed(3)}`;
+  };
+  if (fresh) { finish(Number(latest.amount_usd), start); return; }
+  // poll until the credit lands (up to ~40s)
+  for (let i = 0; i < 20; i++) {
+    await new Promise((r) => setTimeout(r, 2000));
+    const { data: b1 } = await supabase.rpc("get_balance", { p_user_id: user.id });
+    if (Number(b1) > start + 0.001) { finish(Number(b1) - start, Number(b1)); return; }
+  }
+  $("sucBal").textContent = "Payment received — the credit shows up within a minute. Refresh if needed.";
+}
+
 /* ---------- init ---------- */
 const { data: { session } } = await supabase.auth.getSession();
 $("app").classList.remove("hidden");
@@ -1452,7 +1550,8 @@ if (session) {
   if (["overview", "keys", "endpoints", "usage", "account", "profile"].includes(page)) show(page);
   if (new URLSearchParams(location.search).get("topup") === "success") {
     show("account");
-    msg("Top-up received — balance updates within a few seconds.", "ok");
+    history.replaceState(null, "", "/dashboard/#account");
+    void celebrateTopup();
   }
   onbDoneKey = "f42_onb_done_" + session.user.id;
   if (!localStorage.getItem(onbDoneKey)) {
