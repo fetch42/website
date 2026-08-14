@@ -175,6 +175,9 @@
   .km-input { width:100%; background:#fff; border:1px solid var(--line2); border-radius:10px; padding:11px 13px;
     font-family:inherit; font-size:14.5px; color:var(--text); }
   .km-input:focus { outline:none; border-color:var(--muted); }
+  .km-input::placeholder { color:#B4B2AB; }
+  .km-input:disabled { background:var(--panel); color:var(--muted); border-color:var(--line); cursor:not-allowed; }
+  .km-dim { opacity:.45; }
   .prompt-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .prompt-card { text-align:left; background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; color:var(--text); cursor:pointer; }
   .prompt-card:hover { border-color:var(--muted); }
@@ -344,7 +347,7 @@
         <p style="font-size:14px;font-weight:600;margin-top:12px">Key limit</p>
         <label class="km-label" for="kmCap">Credit limit (optional)</label>
         <input type="number" id="kmCap" class="km-input" min="1" max="100000" placeholder="Leave blank for unlimited">
-        <label class="km-label" for="kmPeriod">Reset limit every…</label>
+        <label class="km-label km-dim" for="kmPeriod" id="kmPeriodLabel">Reset limit every…</label>
         <select id="kmPeriod" class="km-input" disabled>
           <option value="total">N/A</option>
           <option value="daily">Daily</option>
@@ -670,6 +673,7 @@ let kmState = { mode: "create", id: null };
 function syncPeriodLock() {
   const hasCap = $("kmCap").value.trim() !== "";
   $("kmPeriod").disabled = !hasCap;
+  $("kmPeriodLabel").classList.toggle("km-dim", !hasCap);
   if (!hasCap) $("kmPeriod").value = "total";
 }
 function openKeyModal(mode, key) {
