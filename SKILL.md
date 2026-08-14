@@ -103,6 +103,14 @@ Every successful response:
 
 Use `meta.cost_usd` and `meta.balance_usd` to stay cost-aware without extra calls.
 
+Pagination: list-shaped endpoints (comments, followers, posts, tweets, search
+results, reviews...) return one page — usually 5-30 items. If the response
+`data` includes a cursor-like field (e.g. `cursor`, `cursor.bottom`, a
+`next_page_token`), pass it back as a `cursor` (or matching) query param to
+get the next page. Not every list param is spelled out per-endpoint in the
+catalog — if you need more than one page and the first response includes a
+cursor field, try passing it back before concluding the data doesn't exist.
+
 ## Step 5 — error handling
 
 - `401` — missing/invalid key: check `FETCH42_API_KEY`.
