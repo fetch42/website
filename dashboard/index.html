@@ -328,13 +328,31 @@
     <div class="wiz-head"><img src="/assets/mark.svg" alt=""><span id="kmTitle">Create API key</span></div>
     <div class="wiz-body" style="min-height:0;text-align:left">
       <label class="km-label" for="kmName">Name</label>
-      <input type="text" id="kmName" class="km-input" placeholder="e.g. production, my-agent" maxlength="40">
-      <label class="km-label" for="kmCap">Daily spending cap (USD)</label>
-      <input type="number" id="kmCap" class="km-input" min="1" max="10000" placeholder="Leave blank for unlimited">
+      <input type="text" id="kmName" class="km-input" placeholder="e.g. &quot;Chatbot Key&quot;" maxlength="40">
       <label class="km-label" for="kmExp">Expiration</label>
-      <input type="date" id="kmExp" class="km-input">
-      <p class="muted" style="font-size:12.5px;margin-top:10px">Both optional — no cap and no expiration by default. Your prepaid balance is always the hard stop.</p>
-      <div class="bad" id="kmMsg" style="min-height:18px;font-size:13px;margin-top:4px"></div>
+      <select id="kmExp" class="km-input">
+        <option value="">No expiration</option>
+        <option value="1h">1 hour</option>
+        <option value="1d">1 day</option>
+        <option value="7d">7 days</option>
+        <option value="30d">30 days</option>
+        <option value="90d">90 days</option>
+        <option value="180d">180 days</option>
+        <option value="365d">1 year</option>
+      </select>
+      <div style="border:1px solid var(--line);border-radius:12px;padding:4px 16px 16px;margin-top:16px">
+        <p style="font-size:14px;font-weight:600;margin-top:12px">Key limit</p>
+        <label class="km-label" for="kmCap">Credit limit (optional)</label>
+        <input type="number" id="kmCap" class="km-input" min="1" max="100000" placeholder="Leave blank for unlimited">
+        <label class="km-label" for="kmPeriod">Reset limit every…</label>
+        <select id="kmPeriod" class="km-input" disabled>
+          <option value="total">N/A</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+      <div class="bad" id="kmMsg" style="min-height:18px;font-size:13px;margin-top:8px"></div>
     </div>
     <div class="wiz-foot">
       <button class="btn ghost sm" id="kmCancel">Cancel</button>
@@ -410,7 +428,7 @@
       </div>
       <div class="card">
         <input type="text" id="keySearch" class="km-input" placeholder="Search by name…" style="max-width:300px;margin-bottom:14px">
-        <table id="keysTable"><thead><tr><th>Key</th><th>Expires</th><th>Last used</th><th class="r">Usage</th><th class="r">Daily limit</th><th></th></tr></thead><tbody></tbody></table>
+        <table id="keysTable"><thead><tr><th>Key</th><th>Expires</th><th>Last used</th><th class="r">Usage</th><th class="r">Key limit</th><th></th></tr></thead><tbody></tbody></table>
         <p class="muted" id="keyCount" style="margin-top:12px;font-size:13px"></p>
       </div>
     </section>
@@ -649,18 +667,37 @@ function closeRowMenu() { if (rowMenu) { rowMenu.remove(); rowMenu = null; } }
 document.addEventListener("click", (e) => { if (rowMenu && !e.target.closest(".row-menu") && !e.target.closest(".kdots")) closeRowMenu(); });
 
 let kmState = { mode: "create", id: null };
+function syncPeriodLock() {
+  const hasCap = $("kmCap").value.trim() !== "";
+  $("kmPeriod").disabled = !hasCap;
+  if (!hasCap) $("kmPeriod").value = "total";
+}
 function openKeyModal(mode, key) {
-  kmState = { mode, id: key?.id ?? null };
+  kmState = { mode, id: key?.id ?? null, existingExpiry: key?.expires_at ?? null };
   $("kmTitle").textContent = mode === "create" ? "Create API key" : "Edit key";
-  $("kmSave").textContent = mode === "create" ? "Create key" : "Save changes";
+  $("kmSave").textContent = mode === "create" ? "Create" : "Save";
   $("kmName").value = key?.name ?? "";
   $("kmCap").value = key?.daily_cap_usd ?? "";
-  $("kmExp").value = key?.expires_at ? key.expires_at.slice(0, 10) : "";
+  $("kmPeriod").value = key?.cap_period ?? "total";
+  // expiration select: rebuild "keep current" option for edit mode
+  const keep = $("kmExp").querySelector('option[value="keep"]');
+  if (keep) keep.remove();
+  if (mode === "edit" && key?.expires_at) {
+    const o = document.createElement("option");
+    o.value = "keep";
+    o.textContent = `Keep current (${key.expires_at.slice(0, 10)})`;
+    $("kmExp").prepend(o);
+    $("kmExp").value = "keep";
+  } else {
+    $("kmExp").value = "";
+  }
+  syncPeriodLock();
   $("kmMsg").textContent = "";
   $("keyModal").classList.remove("hidden");
   $("app").classList.add("blur");
   $("kmName").focus();
 }
+$("kmCap").addEventListener("input", syncPeriodLock);
 function closeKeyModal() {
   $("keyModal").classList.add("hidden");
   $("app").classList.remove("blur");
@@ -673,23 +710,25 @@ $("kmSave").addEventListener("click", async () => {
   const name = $("kmName").value.trim() || "default";
   const capRaw = $("kmCap").value.trim();
   const cap = capRaw === "" ? null : Number(capRaw);
-  if (cap !== null && (!Number.isFinite(cap) || cap <= 0)) { $("kmMsg").textContent = "Cap must be a positive number."; return; }
-  const expires = $("kmExp").value ? $("kmExp").value + "T23:59:59Z" : null;
-  if (expires && new Date(expires).getTime() < Date.now()) { $("kmMsg").textContent = "Expiration is in the past."; return; }
+  if (cap !== null && (!Number.isFinite(cap) || cap <= 0)) { $("kmMsg").textContent = "Credit limit must be a positive number."; return; }
+  const period = cap === null ? "total" : $("kmPeriod").value;
+  const DUR = { "1h": 36e5, "1d": 864e5, "7d": 7 * 864e5, "30d": 30 * 864e5, "90d": 90 * 864e5, "180d": 180 * 864e5, "365d": 365 * 864e5 };
+  const expSel = $("kmExp").value;
+  const expires = expSel === "keep" ? kmState.existingExpiry : expSel === "" ? null : new Date(Date.now() + DUR[expSel]).toISOString();
   $("kmSave").disabled = true;
   if (kmState.mode === "create") {
     const { data: { user } } = await supabase.auth.getUser();
     const raw = "fk_live_" + [...crypto.getRandomValues(new Uint8Array(24))].map((b) => b.toString(16).padStart(2, "0")).join("");
     const { error } = await supabase.from("api_keys").insert({
       user_id: user.id, key_hash: await sha256hex(raw), key_prefix: raw.slice(0, 14),
-      name, daily_cap_usd: cap, expires_at: expires,
+      name, daily_cap_usd: cap, cap_period: period, expires_at: expires,
     });
     if (error) { $("kmMsg").textContent = `Could not create key: ${error.message}`; $("kmSave").disabled = false; return; }
     $("newKeyValue").textContent = raw;
     $("newKey").classList.remove("hidden");
   } else {
     const { error } = await supabase.from("api_keys")
-      .update({ name, daily_cap_usd: cap, expires_at: expires }).eq("id", kmState.id);
+      .update({ name, daily_cap_usd: cap, cap_period: period, expires_at: expires }).eq("id", kmState.id);
     if (error) { $("kmMsg").textContent = "Could not update key."; $("kmSave").disabled = false; return; }
     msg("Key updated.", "ok");
   }
@@ -716,7 +755,8 @@ function renderKeys() {
   tb.innerHTML = "";
   for (const k of list) {
     const st = keyStats[k.id] || {};
-    const cap = k.daily_cap_usd == null ? '<span class="muted">unlimited</span>' : `$${Number(k.daily_cap_usd).toFixed(2)}/day`;
+    const PERIOD_LABEL = { total: "total", daily: "/day", weekly: "/week", monthly: "/month" };
+    const cap = k.daily_cap_usd == null ? '<span class="muted">unlimited</span>' : `$${Number(k.daily_cap_usd).toFixed(2)} ${PERIOD_LABEL[k.cap_period] ?? ""}`;
     const exp = k.expires_at ? k.expires_at.slice(0, 10) : '<span class="muted">Never</span>';
     const usage = st.spend_usd != null ? `$${Number(st.spend_usd).toFixed(3)}` : "$0.000";
     const disabled = !!k.revoked_at;
@@ -776,7 +816,7 @@ function renderKeys() {
 $("keySearch").addEventListener("input", renderKeys);
 async function loadKeys() {
   const [{ data: keys }, { data: stats }] = await Promise.all([
-    supabase.from("api_keys").select("id,key_prefix,name,daily_cap_usd,expires_at,created_at,revoked_at").is("deleted_at", null).order("created_at"),
+    supabase.from("api_keys").select("id,key_prefix,name,daily_cap_usd,cap_period,expires_at,created_at,revoked_at").is("deleted_at", null).order("created_at"),
     supabase.rpc("key_usage_stats"),
   ]);
   keysCache = keys ?? [];
