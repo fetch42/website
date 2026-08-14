@@ -31,8 +31,15 @@ The REST surface below is identical in coverage — use whichever fits.
 
 ## Step 1 — API key
 
-Ask your human for a Fetch42 API key. They can create one in ~1 minute at
-https://fetch42.ai/dashboard ($1 free credit on signup, no card required).
+If you don't already have a `FETCH42_API_KEY`, stop and tell the user clearly,
+on its own line, not buried in other text:
+
+    👉 Get a free key (~1 min, $1 credit, no card): https://fetch42.ai/dashboard
+
+If you can run shell commands, offer to open it for them directly (don't run
+this without asking first): `open https://fetch42.ai/dashboard` (macOS),
+`xdg-open` (Linux), or `start` (Windows). Then wait for the key before
+continuing — don't attempt a call without one.
 
 Store it as the environment variable `FETCH42_API_KEY`. Never hardcode it.
 
