@@ -568,7 +568,7 @@
         </span>
       </h2>
       <div class="card">
-        <table id="callsTable"><thead><tr><th>Time (UTC)</th><th>Endpoint</th><th>Key</th><th>Provider</th><th class="r">Price</th><th class="r">ms</th><th></th></tr></thead><tbody></tbody></table>
+        <table id="callsTable"><thead><tr><th>Time</th><th>Endpoint</th><th>Key</th><th>Provider</th><th class="r">Price</th><th class="r">ms</th><th></th></tr></thead><tbody></tbody></table>
         <p class="muted hidden" id="noCalls" style="margin-top:10px;font-size:13.5px">No calls in this period.</p>
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px">
           <span class="muted" id="actPageInfo" style="font-size:13px"></span>
@@ -1026,6 +1026,9 @@ $("kmSave").addEventListener("click", async () => {
 
 let keysCache = [];
 let keyStats = {};
+function fmtDT(ts) {
+  return new Date(ts).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
 function timeAgo(ts) {
   if (!ts) return "never";
   const s = (Date.now() - new Date(ts).getTime()) / 1000;
@@ -1156,7 +1159,7 @@ async function loadAll() {
       : l.receipt_url
         ? `<a href="${l.receipt_url}" target="_blank" style="text-decoration:underline">Receipt</a>`
         : '<span class="muted">—</span>';
-    tr.innerHTML = `<td class="muted">${l.date.slice(0, 10)}</td><td>${l.type}</td>
+    tr.innerHTML = `<td class="muted" style="white-space:nowrap">${fmtDT(l.date)}</td><td>${l.type}</td>
       <td class="mono r ok">+$${Number(l.amount_usd).toFixed(2)}</td>
       <td class="r">${doc}</td>`;
     lb.appendChild(tr);
@@ -1457,7 +1460,7 @@ async function loadCallsPage() {
   tb.innerHTML = "";
   for (const c2 of calls ?? []) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="muted mono">${c2.ts.slice(0, 19).replace("T", " ")}</td><td class="mono">${c2.endpoint}</td>
+    tr.innerHTML = `<td class="muted" style="white-space:nowrap">${fmtDT(c2.ts)}</td><td class="mono">${c2.endpoint}</td>
       <td class="muted">${nameOf[c2.api_key_id] ?? "—"}</td>
       <td>${c2.provider}</td><td class="mono r">${c2.posted_price_usd ? "$" + Number(c2.posted_price_usd).toFixed(3) : "—"}</td>
       <td class="mono r">${c2.latency_ms}</td><td class="${c2.ok ? "ok" : "bad"}">${c2.ok ? "ok" : "failed"}</td>`;
