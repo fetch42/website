@@ -360,8 +360,8 @@
       <div class="bad" id="kmMsg" style="min-height:18px;font-size:13px;margin-top:8px"></div>
     </div>
     <div class="wiz-foot">
-      <button class="btn ghost sm" id="kmCancel">Cancel</button>
-      <button class="btn sm" id="kmSave">Create key</button>
+      <button class="btn ghost" id="kmCancel">Cancel</button>
+      <button class="btn" id="kmSave">Create key</button>
     </div>
   </div>
 </div>
@@ -376,7 +376,7 @@
       <button id="copyKey" class="btn ghost sm" style="margin-top:4px">Copy key</button>
     </div>
     <div class="wiz-foot" style="justify-content:flex-end">
-      <button class="btn sm" id="keyDoneOk">Done</button>
+      <button class="btn" id="keyDoneOk">Done</button>
     </div>
   </div>
 </div>
@@ -389,8 +389,8 @@
       <p class="muted" style="font-size:14.5px" id="cfBody"></p>
     </div>
     <div class="wiz-foot">
-      <button class="btn ghost sm" id="cfCancel">Cancel</button>
-      <button class="btn sm" id="cfOk">Confirm</button>
+      <button class="btn ghost" id="cfCancel">Cancel</button>
+      <button class="btn" id="cfOk">Confirm</button>
     </div>
   </div>
 </div>
@@ -667,7 +667,7 @@ function confirmDialog(title, bodyHtml, okLabel, danger, action) {
   $("cfTitle").textContent = title;
   $("cfBody").innerHTML = bodyHtml;
   $("cfOk").textContent = okLabel;
-  $("cfOk").className = danger ? "btn sm danger" : "btn sm";
+  $("cfOk").className = danger ? "btn danger" : "btn";
   cfAction = action;
   $("confirmModal").classList.remove("hidden");
   $("app").classList.add("blur");
