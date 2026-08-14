@@ -822,7 +822,8 @@ function renderBiz(d) {
     row("Name", d.name) +
     row("Email", d.email) +
     row("Address", d.address) +
-    row("Company / VAT", d.tax_id, "add via Edit, or tick “purchasing as a business” at checkout");
+    row("Company", d.company) +
+    row("VAT", d.tax_id);
 }
 async function loadBusinessDetails() {
   const { data: { session } } = await supabase.auth.getSession();
