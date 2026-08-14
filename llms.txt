@@ -8,8 +8,8 @@
 
 - [Agent setup skill](https://fetch42.ai/SKILL.md): paste-ready instructions for an agent to integrate Fetch42
 - [API reference](https://fetch42.ai/docs/): core endpoints, params, prices
-- [Live catalog](https://api.fetch42.ai/v1/catalog): machine-readable list of all 252 live endpoints
+- [Live catalog](https://api.fetch42.ai/v1/catalog): machine-readable list of all 250+ live endpoints
 - [Dashboard](https://fetch42.ai/dashboard/): create an API key ($1 free credit, no card)
 - Base URL: https://api.fetch42.ai — auth: `Authorization: Bearer <key>`
-- MCP server (Streamable HTTP): https://api.fetch42.ai/mcp — all 252 endpoints as MCP tools, same key/prices, cost in every result (fallback while the cert provisions: https://gateway-production-2c1d.up.railway.app/mcp)
+- MCP server (Streamable HTTP): https://api.fetch42.ai/mcp — all 250+ endpoints as MCP tools, same key/prices, cost in every result (fallback while the cert provisions: https://gateway-production-2c1d.up.railway.app/mcp)
 - Contact: laurent@fetch42.ai

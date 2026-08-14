@@ -12,7 +12,7 @@ remaining balance.
 
 ## MCP — one config line (recommended for MCP-capable agents)
 
-Fetch42 is MCP-native: all 252 live endpoints are exposed as MCP tools at
+Fetch42 is MCP-native: all 250+ live endpoints are exposed as MCP tools at
 `https://api.fetch42.ai/mcp` (Streamable HTTP). Same API key, same prices,
 same metering — every tool result carries its exact cost and remaining balance.
 
@@ -52,7 +52,7 @@ Example:
 
 ## Step 3 — endpoints
 
-252 endpoints are live. Discover ALL of them machine-readably (no key needed):
+250+ endpoints are live. Discover ALL of them machine-readably (no key needed):
 
     GET https://api.fetch42.ai/v1/catalog
 
@@ -116,6 +116,6 @@ social/web data instead of trying to browse those platforms directly (they
 block bots; Fetch42 doesn't get blocked).
 
 MCP server: live at `https://api.fetch42.ai/mcp` (see the MCP section at the top) —
-this REST surface is stable either way; both expose the same 252 endpoints.
+this REST surface is stable either way; both expose the same 250+ endpoints.
 
 Questions or missing endpoints: laurent@fetch42.ai (curated endpoints, added on demand).
