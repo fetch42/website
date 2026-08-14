@@ -815,35 +815,47 @@ if (cachedLast4 !== null) {
 }
 
 /* ---------- auto-recharge ---------- */
+function renderBiz(d) {
+  if (!d) { $("bizDetails").textContent = "No billing details yet - they're collected at your first checkout."; return; }
+  const row = (label, v) => v ? `<div><span style="display:inline-block;width:90px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em">${label}</span> <span style="color:var(--text)">${v}</span></div>` : "";
+  $("bizDetails").innerHTML = (row("Name", d.name) + row("Email", d.email) + row("Address", d.address) + row("Tax ID", d.tax_id)) || "No billing details yet.";
+}
 async function loadBusinessDetails() {
   const { data: { session } } = await supabase.auth.getSession();
   const r = await fetch(`${API}/billing/business`, { headers: { Authorization: `Bearer ${session.access_token}` } })
     .then((x) => x.json()).catch(() => null);
-  const d = r?.details;
-  if (!d) { $("bizDetails").textContent = "No billing details yet - they're collected at your first checkout."; return; }
-  const row = (label, v) => v ? `<div><span style="display:inline-block;width:90px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em">${label}</span> <span style="color:var(--text)">${v}</span></div>` : "";
-  $("bizDetails").innerHTML = row("Name", d.name) + row("Email", d.email) + row("Address", d.address) + row("Tax ID", d.tax_id) || "No billing details yet.";
+  if (!r) return; // keep cached view on transient failure
+  localStorage.setItem("f42_biz", JSON.stringify(r.details ?? null));
+  renderBiz(r.details);
+}
+function renderAR(cfg) {
+  $("arEnabled").checked = !!cfg.enabled;
+  $("arAmount").value = cfg.amount_usd;
+  $("arThreshold").value = cfg.threshold_usd;
+  window.f42Card = cfg.has_saved_card ? (cfg.card_last4 || "on file") : null;
+  if (cfg.has_saved_card) renderOneclickNote(cfg.card_last4);
+  $("arStatus").textContent = cfg.has_saved_card
+    ? (cfg.enabled ? "Active — your saved card is charged automatically. Checked every 10 minutes, at most once per hour." : "Off — your card is saved, flip the switch to enable.")
+    : "Make one top-up first — Stripe saves your card securely during checkout, then you can enable auto-recharge.";
 }
 async function loadAutoRecharge() {
   const { data: { session } } = await supabase.auth.getSession();
   const cfg = await fetch(`${API}/billing/autorecharge`, {
     headers: { Authorization: `Bearer ${session.access_token}` },
   }).then((r) => r.json()).catch(() => null);
-  if (!cfg) { $("arStatus").textContent = "Could not load auto-recharge settings."; return; }
-  $("arEnabled").checked = !!cfg.enabled;
-  $("arAmount").value = cfg.amount_usd;
-  $("arThreshold").value = cfg.threshold_usd;
-  window.f42Card = cfg.has_saved_card ? (cfg.card_last4 || "on file") : null;
-  if (cfg.has_saved_card) {
-    localStorage.setItem("f42_card_last4", cfg.card_last4 ?? "");
-    renderOneclickNote(cfg.card_last4);
-  } else {
-    localStorage.removeItem("f42_card_last4");
-  }
-  $("arStatus").textContent = cfg.has_saved_card
-    ? (cfg.enabled ? "Active — your saved card is charged automatically. Checked every 10 minutes, at most once per hour." : "Off — your card is saved, flip the switch to enable.")
-    : "Make one top-up first — Stripe saves your card securely during checkout, then you can enable auto-recharge.";
+  if (!cfg) return; // keep cached view on transient failure
+  localStorage.setItem("f42_ar", JSON.stringify(cfg));
+  if (cfg.has_saved_card) localStorage.setItem("f42_card_last4", cfg.card_last4 ?? "");
+  else localStorage.removeItem("f42_card_last4");
+  renderAR(cfg);
 }
+// instant paint from cache, refresh in background
+try {
+  const arc = JSON.parse(localStorage.getItem("f42_ar") ?? "null");
+  if (arc) renderAR(arc);
+  const bizc = localStorage.getItem("f42_biz");
+  if (bizc !== null) renderBiz(JSON.parse(bizc));
+} catch {}
 $("arSave").addEventListener("click", async () => {
   $("arSave").disabled = true;
   const { data: { session } } = await supabase.auth.getSession();
@@ -1080,6 +1092,8 @@ async function loadKeys() {
 
 /* ---------- data loads ---------- */
 async function loadAll() {
+  void loadAutoRecharge();
+  void loadBusinessDetails();
   const { data: { user } } = await supabase.auth.getUser();
   $("userEmail").textContent = user.email;
   $("accEmail").textContent = user.email;
@@ -1127,8 +1141,6 @@ async function loadAll() {
       <td class="r">${doc}</td>`;
     lb.appendChild(tr);
   }
-  loadAutoRecharge();
-  loadBusinessDetails();
 }
 
 /* ---------- onboarding wizard ---------- */
