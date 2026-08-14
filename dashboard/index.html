@@ -285,7 +285,7 @@
           <p id="wizLoadLine" style="font-size:15px;font-weight:500">Creating your workspace…</p>
         </div>
         <div id="wizKeyWrap" class="hidden">
-        <p class="wiz-sub"><span class="ok">✓ $1.00 free credit added to your balance.</span> Here is your API key — give it to your agent to authorize Fetch42 calls.</p>
+        <p class="wiz-sub"><span class="ok">✓ <span id="wizGrantAmt">$0.00</span> free credit added to your balance.</span> Here is your API key — give it to your agent to authorize Fetch42 calls.</p>
         <div id="wizKeyMsg" class="bad" style="min-height:0;font-size:13.5px"></div>
         <div class="keybox mono" id="wizKeyValue" style="margin-top:4px">creating your key…</div>
         <button id="wizCopyKey" class="btn ghost sm">Copy key</button>
@@ -1225,6 +1225,8 @@ function wizLoadSeq() {
     $("wizLoading").classList.add("hidden");
     $("wizKeyWrap").classList.remove("hidden");
     $("wizNext").disabled = false;
+    confettiBurst();
+    countUp($("wizGrantAmt"), 0, 1, 2, "$");
   }, LOAD_LINES.length * 800 + 400);
 }
 
