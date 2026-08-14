@@ -430,8 +430,8 @@
     <div class="wiz-body" style="min-height:0;text-align:center;padding:34px 28px 28px">
       <div id="sucWait">
         <div class="spin" style="margin:8px auto 20px"></div>
-        <p style="font-size:17px;font-weight:600;margin-bottom:4px">Refilling your balance…</p>
-        <p class="muted" style="font-size:13.5px">Fresh credits incoming.</p>
+        <p style="font-size:17px;font-weight:600;margin-bottom:4px" id="sucWaitTitle">Refilling your balance…</p>
+        <p class="muted" style="font-size:13.5px" id="sucWaitSub">Fresh credits incoming.</p>
       </div>
       <div id="sucDone" class="hidden">
         <svg class="suc-check" viewBox="0 0 56 56"><circle cx="28" cy="28" r="26"/><path d="M17 29l8 8 15-16"/></svg>
@@ -441,6 +441,7 @@
       </div>
     </div>
     <div class="wiz-foot" style="justify-content:center;border-top:0;padding-top:0">
+      <button class="btn ghost hidden" id="sucCancel">Cancel</button>
       <button class="btn" id="sucOk">Let&rsquo;s go</button>
     </div>
   </div>
@@ -746,14 +747,35 @@ async function doTopup(amount, btn) {
   };
   const oneclick = window.f42Card && localStorage.getItem("f42_oneclick") !== "0";
   if (oneclick) {
-    const prev = btn.textContent;
-    btn.textContent = "Charging…";
+    // modal first: brief cancel window for misclicks, then charge
+    let cancelled = false;
+    $("successModal").classList.remove("hidden");
+    $("app").classList.add("blur");
+    $("sucWait").classList.remove("hidden");
+    $("sucDone").classList.add("hidden");
+    $("sucWaitTitle").textContent = `Topping up $${amount.toFixed(2)}…`;
+    $("sucWaitSub").textContent = "Charging your saved card in a moment.";
+    $("sucOk").classList.add("hidden");
+    $("sucCancel").classList.remove("hidden");
+    $("sucCancel").onclick = () => {
+      cancelled = true;
+      $("successModal").classList.add("hidden");
+      $("app").classList.remove("blur");
+      $("sucOk").classList.remove("hidden");
+      btn.disabled = false;
+    };
+    await new Promise((r) => setTimeout(r, 2500));
+    if (cancelled) return;
+    $("sucCancel").classList.add("hidden");
+    $("sucWaitSub").textContent = "Processing…";
     const r = await fetch(`${API}/billing/topup-instant`, { method: "POST", headers: auth, body: JSON.stringify({ amount_usd: amount }) })
       .then((x) => x.json()).catch(() => null);
-    btn.textContent = prev;
-    if (r?.ok) { btn.disabled = false; loadAll(); void celebrateTopup(r.invoice_id); return; }
+    $("sucOk").classList.remove("hidden");
+    btn.disabled = false;
+    if (r?.ok) { loadAll(); void celebrateTopup(r.invoice_id); return; }
+    $("successModal").classList.add("hidden");
+    $("app").classList.remove("blur");
     if (r?.error === "charge_failed") {
-      btn.disabled = false;
       confirmDialog("Payment didn't go through",
         `Your bank declined the 1-click charge - it probably wants you to approve it. The full checkout lets you confirm in your bank app.`,
         "Open full checkout", false, goCheckout);
@@ -1544,6 +1566,10 @@ async function celebrateTopup(sid) {
   $("app").classList.add("blur");
   $("sucWait").classList.remove("hidden");
   $("sucDone").classList.add("hidden");
+  $("sucWaitTitle").textContent = "Refilling your balance…";
+  $("sucWaitSub").textContent = "Fresh credits incoming.";
+  $("sucCancel").classList.add("hidden");
+  $("sucOk").classList.remove("hidden");
   const { data: { user } } = await supabase.auth.getUser();
   const finish = async (amount) => {
     const { data: bal } = await supabase.rpc("get_balance", { p_user_id: user.id });
