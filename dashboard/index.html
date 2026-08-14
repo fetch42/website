@@ -1512,18 +1512,13 @@ function countUp(el, from, to, decimals, prefix) {
   })(t0);
 }
 $("sucOk").addEventListener("click", () => { $("successModal").classList.add("hidden"); $("app").classList.remove("blur"); });
-async function celebrateTopup() {
+async function celebrateTopup(sid) {
   $("successModal").classList.remove("hidden");
   $("app").classList.add("blur");
   const { data: { session } } = await supabase.auth.getSession();
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: b0 } = await supabase.rpc("get_balance", { p_user_id: user.id });
-  const start = Number(b0 ?? 0);
-  // if the webhook already credited before we loaded, detect via a very recent topup
-  const hist = await fetch(`${API}/billing/history`, { headers: { Authorization: `Bearer ${session.access_token}` } }).then((r) => r.json()).catch(() => null);
-  const latest = hist?.payments?.find((p) => p.type !== "grant");
-  const fresh = latest && Date.now() - new Date(latest.date).getTime() < 3 * 60 * 1000;
-  const finish = (amount, newBal) => {
+  const finish = (amount) => supabase.rpc("get_balance", { p_user_id: user.id }).then(({ data: bal }) => {
+    const newBal = Number(bal ?? 0);
     confettiBurst();
     countUp($("sucAmt"), 0, amount, 2, "+$");
     $("sucBal").textContent = "";
@@ -1531,13 +1526,13 @@ async function celebrateTopup() {
     countUp($("walletBalance"), Math.max(0, newBal - amount), newBal, 2, "$");
     $("ovBalance").textContent = `$${newBal.toFixed(3)}`;
     $("accBalance").textContent = `$${newBal.toFixed(3)}`;
-  };
-  if (fresh) { finish(Number(latest.amount_usd), start); return; }
-  // poll until the credit lands (up to ~40s)
-  for (let i = 0; i < 20; i++) {
-    await new Promise((r) => setTimeout(r, 2000));
-    const { data: b1 } = await supabase.rpc("get_balance", { p_user_id: user.id });
-    if (Number(b1) > start + 0.001) { finish(Number(b1) - start, Number(b1)); return; }
+  });
+  // find THIS payment by its checkout session id (webhook may land before or after us)
+  for (let i = 0; i < 15; i++) {
+    const hist = await fetch(`${API}/billing/history`, { headers: { Authorization: `Bearer ${session.access_token}` } }).then((r) => r.json()).catch(() => null);
+    const mine = sid ? hist?.payments?.find((p) => p.ref === sid) : hist?.payments?.find((p) => p.type !== "grant" && Date.now() - new Date(p.date).getTime() < 3 * 60 * 1000);
+    if (mine) { await finish(Number(mine.amount_usd)); return; }
+    await new Promise((r) => setTimeout(r, 2500));
   }
   $("sucBal").textContent = "Payment received — the credit shows up within a minute. Refresh if needed.";
 }
@@ -1548,10 +1543,12 @@ $("app").classList.remove("hidden");
 if (session) {
   const page = location.hash.slice(1);
   if (["overview", "keys", "endpoints", "usage", "account", "profile"].includes(page)) show(page);
-  if (new URLSearchParams(location.search).get("topup") === "success") {
+  const qs = new URLSearchParams(location.search);
+  if (qs.get("topup") === "success") {
     show("account");
+    const sid = qs.get("sid");
     history.replaceState(null, "", "/dashboard/#account");
-    void celebrateTopup();
+    void celebrateTopup(sid);
   }
   onbDoneKey = "f42_onb_done_" + session.user.id;
   if (!localStorage.getItem(onbDoneKey)) {
