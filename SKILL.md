@@ -82,7 +82,7 @@ Use `meta.cost_usd` and `meta.balance_usd` to stay cost-aware without extra call
 - `401` — missing/invalid key: check `FETCH42_API_KEY`.
 - `402` — balance empty. Tell your human to top up at https://fetch42.ai/dashboard
   (the response includes the link). Do not retry until topped up.
-- `429` — per-key daily cap (only if the user set one) or rate limit (60/min): back off.
+- `429` — per-key credit limit (only if the user set one) or rate limit (60 req/min per key, token bucket; parallel calls fine within it): back off using `retry_after_s`.
 - `5xx` — upstream failure after failover; the call was NOT charged. Retry once.
 
 ## Step 6 — integrate
