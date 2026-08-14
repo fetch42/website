@@ -290,8 +290,8 @@
         <div class="keybox mono" id="wizKeyValue" style="margin-top:4px">creating your key…</div>
         <button id="wizCopyKey" class="btn ghost sm">Copy key</button>
         <div id="wizMcp" class="hidden">
-          <p style="font-size:14px;font-weight:600;margin:16px 0 6px">Or plug in via MCP — every endpoint as a native tool, one line:</p>
-          <div class="keybox mono" id="wizMcpCmd" style="font-size:12px"></div>
+          <p style="font-size:14px;font-weight:600;margin:16px 0 6px" id="wizMcpIntro">Or plug in via MCP — every endpoint as a native tool:</p>
+          <div class="keybox mono" id="wizMcpCmd" style="font-size:12px;white-space:pre-wrap;text-align:left"></div>
           <button id="wizCopyMcp" class="btn ghost sm">Copy command</button>
         </div>
         <p class="muted" style="font-size:13px;margin-top:14px">Shown only once — we store just a hash. No expiration, no spending cap — add limits anytime under API Keys.</p>
@@ -1244,13 +1244,56 @@ async function wizCreateKey() {
   } else {
     $("wizKeyValue").textContent = raw;
     const harness = localStorage.getItem("f42_harness") || "";
-    if (harness !== "Hermes Agent" && harness !== "Clawbot") {
-      $("wizMcpCmd").textContent = `claude mcp add --transport http fetch42 https://api.fetch42.ai/mcp --header "Authorization: Bearer ${raw}"`;
+    const mcp = mcpSnippet(harness, raw);
+    if (mcp) {
+      $("wizMcpIntro").textContent = mcp.intro;
+      $("wizMcpCmd").textContent = mcp.code;
       $("wizMcp").classList.remove("hidden");
     }
     loadKeys();
   }
 }
+const MCP_URL = "https://api.fetch42.ai/mcp";
+function mcpSnippet(harness, key) {
+  const auth = `Bearer ${key}`;
+  switch (harness) {
+    case "Claude Code":
+      return { intro: "Or plug in via MCP — every endpoint as a native tool, one line in your terminal:",
+        code: `claude mcp add --transport http fetch42 ${MCP_URL} --header "Authorization: ${auth}"` };
+    case "Cursor":
+      return { intro: "Or plug in via MCP — add to ~/.cursor/mcp.json (or .cursor/mcp.json in your project):",
+        code: JSON.stringify({ mcpServers: { fetch42: { url: MCP_URL, headers: { Authorization: auth } } } }, null, 2) };
+    case "Copilot":
+      return { intro: "Or plug in via MCP — add to .vscode/mcp.json in your workspace:",
+        code: JSON.stringify({ servers: { fetch42: { type: "http", url: MCP_URL, headers: { Authorization: auth } } } }, null, 2) };
+    case "Windsurf":
+      return { intro: "Or plug in via MCP — add to ~/.codeium/windsurf/mcp_config.json:",
+        code: JSON.stringify({ mcpServers: { fetch42: { serverUrl: MCP_URL, headers: { Authorization: auth } } } }, null, 2) };
+    case "Gemini CLI":
+      return { intro: "Or plug in via MCP — add to ~/.gemini/settings.json:",
+        code: JSON.stringify({ mcpServers: { fetch42: { httpUrl: MCP_URL, headers: { Authorization: auth } } } }, null, 2) };
+    case "Codex":
+      return { intro: "Or plug in via MCP — add to ~/.codex/config.toml:",
+        code: `[mcp_servers.fetch42]\ncommand = "npx"\nargs = ["-y", "mcp-remote", "${MCP_URL}", "--header", "Authorization: ${auth}"]` };
+    case "OpenCode":
+      return { intro: "Or plug in via MCP — add to opencode.json:",
+        code: JSON.stringify({ mcp: { fetch42: { type: "remote", url: MCP_URL, headers: { Authorization: auth } } } }, null, 2) };
+    case "Warp":
+      return { intro: "Or plug in via MCP — Warp Settings → AI → Manage MCP servers → + Add, paste:",
+        code: JSON.stringify({ fetch42: { command: "npx", args: ["-y", "mcp-remote", MCP_URL, "--header", `Authorization: ${auth}`] } }, null, 2) };
+    case "Goose":
+      return { intro: "Or plug in via MCP — run `goose configure` → Add Extension → Remote Extension (Streaming HTTP):",
+        code: `URL: ${MCP_URL}\nRequest header:  Authorization: ${auth}` };
+    case "Aider":
+    case "Hermes Agent":
+    case "Clawbot":
+      return null;
+    default:
+      return { intro: "Or plug in via MCP — if your agent supports MCP, add this server to its config:",
+        code: JSON.stringify({ mcpServers: { fetch42: { url: MCP_URL, headers: { Authorization: auth } } } }, null, 2) };
+  }
+}
+
 $("wizCopyMcp").addEventListener("click", () => {
   navigator.clipboard.writeText($("wizMcpCmd").textContent);
   $("wizCopyMcp").textContent = "Copied ✓";
