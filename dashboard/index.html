@@ -816,7 +816,7 @@ function renderOneclickNote(last4) {
   const on = localStorage.getItem("f42_oneclick") !== "0";
   $("topupNote").innerHTML = `<span style="display:inline-flex;align-items:center;gap:9px;vertical-align:middle">
     <label class="switch" style="transform:scale(.85)"><input type="checkbox" id="oneclickToggle" ${on ? "checked" : ""}><span class="track"></span></label>
-    ⚡ 1-click top-up · card ••••${last4 || ""}</span>`;
+    ⚡ 1-click top-up</span>`;
   document.getElementById("oneclickToggle").addEventListener("change", (e) =>
     localStorage.setItem("f42_oneclick", e.target.checked ? "1" : "0"));
 }
