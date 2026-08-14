@@ -488,9 +488,9 @@
       <div class="card">
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
           <input type="text" id="epSearch" class="km-input" placeholder="Search — try “comments”, “amazon”, “transcript”…" style="max-width:320px">
-          <select id="epCat" class="km-input" style="width:auto"><option value="">All platforms</option></select>
+          <select id="epCat" class="km-input" style="width:auto"><option value="">Platforms</option></select>
         </div>
-        <table id="endpointsTable"><thead><tr><th>Endpoint</th><th>What it returns</th><th class="r">Uptime 7d</th><th class="r">Price / call</th><th></th></tr></thead><tbody></tbody></table>
+        <table id="endpointsTable"><thead><tr><th style="white-space:nowrap">Endpoint</th><th>What it returns</th><th class="r" style="white-space:nowrap">Uptime 7d</th><th class="r" style="white-space:nowrap">Price/call</th><th></th></tr></thead><tbody></tbody></table>
         <p class="muted" id="epShown" style="margin-top:12px;font-size:13px"></p>
       </div>
     </section>
@@ -1211,6 +1211,7 @@ async function loadEndpointsCatalog() {
   epUptime = up?.endpoints ?? {};
   $("epCount").textContent = cat?.count ?? "?";
   const cats = [...new Set(epList.map((e) => e.category))].sort();
+  $("epCat").querySelector("option").textContent = `Platforms (${cats.length})`;
   for (const cname of cats) {
     const o = document.createElement("option");
     o.value = cname; o.textContent = cname;
@@ -1235,7 +1236,7 @@ function renderEndpointsCatalog() {
       <td class="muted" style="font-size:13px;max-width:420px">${firstSentence}</td>
       <td class="mono r">${upTxt}</td>
       <td class="mono r">$${Number(e.price_usd).toFixed(3)}</td>
-      <td class="r"><button class="btn ghost sm" data-excurl="${encodeURIComponent(e.example_request || e.path)}">Copy example</button></td>`;
+      <td class="r"><button class="btn ghost sm" data-excurl="${encodeURIComponent(e.example_request || e.path)}">Copy prompt</button></td>`;
     eb.appendChild(tr);
   }
   $("epShown").textContent = `${list.length} endpoint${list.length === 1 ? "" : "s"}${list.length > 400 ? " (showing first 400)" : ""}`;
@@ -1244,7 +1245,7 @@ function renderEndpointsCatalog() {
       const path = decodeURIComponent(b.dataset.excurl);
       navigator.clipboard.writeText(`curl "https://api.fetch42.ai${path}" \\\n  -H "Authorization: Bearer YOUR_FETCH42_KEY"`);
       b.textContent = "Copied ✓";
-      setTimeout(() => { b.textContent = "Copy example"; }, 1600);
+      setTimeout(() => { b.textContent = "Copy prompt"; }, 1600);
     }),
   );
 }
