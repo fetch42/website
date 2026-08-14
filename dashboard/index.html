@@ -1236,7 +1236,7 @@ function renderEndpointsCatalog() {
       <td class="muted" style="font-size:13px;max-width:420px">${firstSentence}</td>
       <td class="mono r">${upTxt}</td>
       <td class="mono r">$${Number(e.price_usd).toFixed(3)}</td>
-      <td class="r"><button class="btn ghost sm" data-excurl="${encodeURIComponent(e.example_request || e.path)}">Copy prompt</button></td>`;
+      <td class="r" style="white-space:nowrap"><button class="btn ghost sm" style="white-space:nowrap" data-excurl="${encodeURIComponent(e.example_request || e.path)}">Copy prompt</button></td>`;
     eb.appendChild(tr);
   }
   $("epShown").textContent = `${list.length} endpoint${list.length === 1 ? "" : "s"}${list.length > 400 ? " (showing first 400)" : ""}`;
