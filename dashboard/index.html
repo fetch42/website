@@ -178,6 +178,8 @@
   .km-input::placeholder { color:#B4B2AB; }
   .km-input:disabled { background:var(--panel); color:var(--muted); border-color:var(--line); cursor:not-allowed; }
   .km-dim { opacity:.45; }
+  .btn.inactive { background:var(--line2); color:var(--muted); cursor:default; }
+  .btn.inactive:hover { background:var(--line2); }
   .prompt-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .prompt-card { text-align:left; background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; color:var(--text); cursor:pointer; }
   .prompt-card:hover { border-color:var(--muted); }
@@ -330,7 +332,7 @@
   <div class="wiz-modal" style="max-width:460px">
     <div class="wiz-head"><img src="/assets/mark.svg" alt=""><span id="kmTitle">Create API key</span></div>
     <div class="wiz-body" style="min-height:0;text-align:left">
-      <label class="km-label" for="kmName">Name</label>
+      <label class="km-label" for="kmName">Name <span id="kmNameHint" class="bad hidden" style="text-transform:none;letter-spacing:0;font-weight:600;margin-left:8px">Please name your key</span></label>
       <input type="text" id="kmName" class="km-input" placeholder="e.g. &quot;Chatbot Key&quot;" maxlength="40">
       <label class="km-label" for="kmExp">Expiration</label>
       <select id="kmExp" class="km-input">
@@ -360,6 +362,21 @@
     <div class="wiz-foot">
       <button class="btn ghost sm" id="kmCancel">Cancel</button>
       <button class="btn sm" id="kmSave">Create key</button>
+    </div>
+  </div>
+</div>
+
+<!-- save-your-key modal (shown once after creation) -->
+<div id="keyDoneModal" class="wiz-overlay hidden">
+  <div class="wiz-modal" style="max-width:520px">
+    <div class="wiz-body" style="min-height:0;text-align:left;padding:26px">
+      <p style="font-size:17px;font-weight:700;margin-bottom:8px">Save your API key</p>
+      <p class="muted" style="font-size:14px;line-height:1.6;margin-bottom:16px">Please save this key somewhere safe. For security reasons <b style="color:var(--text)">you won&rsquo;t be able to view it again</b> — if you lose it, create a new one.</p>
+      <div class="keybox mono" id="newKeyValue" style="font-size:13.5px"></div>
+      <button id="copyKey" class="btn ghost sm" style="margin-top:4px">Copy key</button>
+    </div>
+    <div class="wiz-foot" style="justify-content:flex-end">
+      <button class="btn sm" id="keyDoneOk">Done</button>
     </div>
   </div>
 </div>
@@ -423,11 +440,6 @@
           <p class="sub">Create and manage your API keys. Shown once at creation — only a hash is stored.</p>
         </div>
         <button id="createKey" class="btn" style="flex:none">+ Create key</button>
-      </div>
-      <div id="newKey" class="hidden">
-        <p><b>Your new API key — copy it now, it is shown only once:</b></p>
-        <div class="keybox mono" id="newKeyValue"></div>
-        <button id="copyKey" class="btn ghost sm" style="margin-bottom:14px">Copy</button>
       </div>
       <div class="card">
         <input type="text" id="keySearch" class="km-input" placeholder="Search by name…" style="max-width:300px;margin-bottom:14px">
@@ -696,12 +708,29 @@ function openKeyModal(mode, key) {
     $("kmExp").value = "";
   }
   syncPeriodLock();
+  $("kmNameHint").classList.add("hidden");
+  syncCreateState();
   $("kmMsg").textContent = "";
   $("keyModal").classList.remove("hidden");
   $("app").classList.add("blur");
   $("kmName").focus();
 }
 $("kmCap").addEventListener("input", syncPeriodLock);
+function syncCreateState() {
+  const named = $("kmName").value.trim() !== "";
+  $("kmSave").classList.toggle("inactive", !named);
+  if (named) $("kmNameHint").classList.add("hidden");
+}
+$("kmName").addEventListener("input", syncCreateState);
+$("keyDoneOk").addEventListener("click", () => {
+  $("keyDoneModal").classList.add("hidden");
+  $("app").classList.remove("blur");
+});
+$("copyKey").addEventListener("click", () => {
+  navigator.clipboard.writeText($("newKeyValue").textContent);
+  $("copyKey").textContent = "Copied ✓";
+  setTimeout(() => { $("copyKey").textContent = "Copy key"; }, 1800);
+});
 function closeKeyModal() {
   $("keyModal").classList.add("hidden");
   $("app").classList.remove("blur");
@@ -711,7 +740,8 @@ $("keyModal").addEventListener("click", (e) => { if (e.target === $("keyModal"))
 $("createKey").addEventListener("click", () => openKeyModal("create"));
 
 $("kmSave").addEventListener("click", async () => {
-  const name = $("kmName").value.trim() || "default";
+  const name = $("kmName").value.trim();
+  if (!name) { $("kmNameHint").classList.remove("hidden"); return; }
   const capRaw = $("kmCap").value.trim();
   const cap = capRaw === "" ? null : Number(capRaw);
   if (cap !== null && (!Number.isFinite(cap) || cap <= 0)) { $("kmMsg").textContent = "Credit limit must be a positive number."; return; }
@@ -729,7 +759,11 @@ $("kmSave").addEventListener("click", async () => {
     });
     if (error) { $("kmMsg").textContent = `Could not create key: ${error.message}`; $("kmSave").disabled = false; return; }
     $("newKeyValue").textContent = raw;
-    $("newKey").classList.remove("hidden");
+    $("kmSave").disabled = false;
+    $("keyModal").classList.add("hidden");
+    $("keyDoneModal").classList.remove("hidden");
+    await loadKeys();
+    return;
   } else {
     const { error } = await supabase.from("api_keys")
       .update({ name, daily_cap_usd: cap, cap_period: period, expires_at: expires }).eq("id", kmState.id);
@@ -740,7 +774,6 @@ $("kmSave").addEventListener("click", async () => {
   closeKeyModal();
   await loadKeys();
 });
-$("copyKey").addEventListener("click", () => navigator.clipboard.writeText($("newKeyValue").textContent));
 
 let keysCache = [];
 let keyStats = {};
