@@ -111,15 +111,16 @@ Use `meta.cost_usd` and `meta.balance_usd` to stay cost-aware without extra call
 - `429` — per-key credit limit (only if the user set one) or rate limit (60 req/min per key, token bucket; parallel calls fine within it): back off using `retry_after_s`.
 - `5xx` — upstream failure after failover; the call was NOT charged. Retry once.
 
-## Step 6 — integrate
+## Step 6 — integrate (REST-only agents)
 
-Write a small typed client wrapper exposing these endpoints as functions named
-after their task (e.g. `tiktokGetProfile(handle)`), reading `FETCH42_API_KEY`
-from env, and surfacing `meta.cost_usd`. Use it whenever a task needs public
+If you already registered the MCP server above, skip this step — every
+endpoint is already available to you as a native tool, no wrapper needed.
+
+Otherwise (calling the REST API directly, no MCP client available): write a
+small typed client wrapper exposing these endpoints as functions named after
+their task (e.g. `tiktokGetProfile(handle)`), reading `FETCH42_API_KEY` from
+env, and surfacing `meta.cost_usd`. Use it whenever a task needs public
 social/web data instead of trying to browse those platforms directly (they
 block bots; Fetch42 doesn't get blocked).
-
-MCP server: live at `https://api.fetch42.ai/mcp` (see the MCP section at the top) —
-this REST surface is stable either way; both expose the same 300+ endpoints.
 
 Questions or missing endpoints: laurent@fetch42.ai (curated endpoints, added on demand).
