@@ -40,30 +40,30 @@ endpoint's own `params` array before calling it — do not assume `q` or
 params named `query`, `keywords` (plural), `handle`, `domain`, `url` etc.
 depending on the endpoint, and guessing wrong wastes a call.**
 
-- **YouTube** (24): youtube.get_transcript, youtube.get_channel, youtube.get_channel_community_posts, +21 more
-- **TikTok** (23): tiktok.get_profile, tiktok.get_posts, tiktok.get_collection_videos, +20 more
-- **Instagram** (20): instagram.get_profile, instagram.get_audio_reels, instagram.get_basic_profile, +17 more
-- **SEO Labs** (17): labs.get_keyword_ideas, labs.get_keyword_suggestions, labs.get_related_keywords, +14 more
-- **Twitter** (14): x.get_profile, twitter.get_community, twitter.get_community_tweets, +11 more
-- **Google** (14): serp.search, serp.news, serp.maps, +11 more
-- **Facebook** (12): facebook.get_group, facebook.get_group_posts, facebook.get_post, +9 more
-- **GitHub** (10): github.get_repository, github.get_trending_developers, github.get_trending_repositories, +7 more
-- **Reddit** (8): reddit.get_posts, reddit.get_post_comments, reddit.get_post_transcript, +5 more
-- **Amazon** (8): amazon.get_keyword_volume, amazon.get_related_keywords, amazon.get_ranked_keywords, +5 more
-- **Web** (6): web.read_page, web.scrape, web.map, +3 more
-- **LinkedIn** (6): linkedin.get_company, linkedin.get_company_posts, linkedin.get_post, +3 more
-- **Spotify** (6): spotify.get_album, spotify.get_artist, spotify.get_podcast, +3 more
-- **TikTok Shop** (6): tiktok.get_product, tiktok.get_shop_product_reviews, tiktok.get_shop_products, +3 more
-- **Backlinks** (6): backlinks.get_summary, backlinks.get_backlinks, backlinks.get_anchors, +3 more
-- **Threads** (5): threads.get_profile, threads.get_post, threads.get_user_posts, +2 more
-- **Facebook Ad Library** (5): facebook.get_adlibrary_ad, facebook.get_adlibrary_ad_transcript, facebook.get_adlibrary_company_ads, +2 more
-- **Pinterest** (5): pinterest.get_board, pinterest.get_pin, pinterest.get_user_boards, +2 more
-- **Rumble** (5): rumble.get_channel_videos, rumble.get_video, rumble.get_video_comments, +2 more
-- **Keywords** (5): keywords.get_volume, keywords.get_for_site, keywords.get_for_keywords, +2 more
-- **Apple Music** (4): apple-music.get_album, apple-music.get_artist, apple-music.get_track, +1 more
-- **App Store** (4): appstore.get_app_keywords, appstore.get_app_competitors, appstore.get_app_metrics, +1 more
-- **Google Play** (4): googleplay.get_app_keywords, googleplay.get_app_competitors, googleplay.get_app_metrics, +1 more
-- **Google Business** (4): google.get_business, google.get_business_qa, business.search_listings, +1 more
+- **YouTube** (24): youtube.get_transcript, youtube.get_channel, youtube.get_channel_community_posts, youtube.get_channel_lives, youtube.get_channel_playlists, youtube.get_channel_shorts, youtube.get_channel_videos, youtube.get_community_post, youtube.get_playlist, youtube.get_shorts_trending, youtube.get_video, youtube.get_video_comment_replies, youtube.get_video_comments, youtube.get_video_sponsors, youtube.get_video_transcript, youtube.search, youtube.search_hashtag, youtube.search_sd, youtube.get_channel_sd, youtube.get_playlist_sd, youtube.get_channel_videos_sd, youtube.get_playlist_videos, youtube.get_video_sd, youtube_serp.search
+- **TikTok** (23): tiktok.get_profile, tiktok.get_posts, tiktok.get_collection_videos, tiktok.get_get_trending_feed, tiktok.get_live, tiktok.get_profile_region, tiktok.get_profile_videos, tiktok.get_song, tiktok.get_song_videos, tiktok.get_user_audience, tiktok.get_user_followers, tiktok.get_user_following, tiktok.get_user_live, tiktok.get_video, tiktok.get_video_comment_replies, tiktok.get_video_comments, tiktok.get_video_transcript, tiktok.search_hashtag, tiktok.search_keyword, tiktok.search_suggestions, tiktok.search_top, tiktok.search_users, tiktok.get_transcript
+- **Instagram** (20): instagram.get_profile, instagram.get_audio_reels, instagram.get_basic_profile, instagram.get_media_transcript, instagram.get_post, instagram.get_post_comment_replies, instagram.get_post_comments, instagram.get_reels_search, instagram.get_reels_trending, instagram.get_user_embed, instagram.get_user_highlight_detail, instagram.get_user_highlights, instagram.get_user_posts, instagram.get_user_reels, instagram.get_user_tagged_posts, instagram.search, instagram.search_hashtag, instagram.search_popular, instagram.search_profiles, instagram.get_reels_by_song
+- **SEO Labs** (17): labs.get_keyword_ideas, labs.get_keyword_suggestions, labs.get_related_keywords, labs.get_keyword_overview, labs.get_keyword_difficulty, labs.get_search_intent, labs.get_ranked_keywords, labs.get_domain_overview, labs.get_competitors, labs.get_traffic_estimate, labs.get_keywords_for_site, labs.get_domain_intersection, labs.get_serp_competitors, labs.get_relevant_pages, labs.get_subdomains, labs.get_historical_rank, labs.get_top_searches
+- **Twitter** (14): x.get_profile, twitter.get_community, twitter.get_community_tweets, twitter.get_profile, twitter.get_tweet, twitter.get_tweet_transcript, twitter.get_user_tweets, x.get_user_tweets, x.get_user_tweets_all, x.get_tweet, x.get_tweet_transcript, x.search, x.get_community, x.get_community_tweets
+- **Google** (14): serp.search, serp.news, serp.maps, serp.shopping, serp.images, serp.videos, serp.scholar, serp.patents, serp.autocomplete, serp.lens, google.get_place_reviews, google.search, serp.search_advanced, google.search_ai_mode
+- **Facebook** (12): facebook.get_group, facebook.get_group_posts, facebook.get_post, facebook.get_post_comment_replies, facebook.get_post_comments, facebook.get_post_transcript, facebook.get_profile, facebook.get_profile_events, facebook.get_profile_photos, facebook.get_profile_posts, facebook.get_profile_reels, facebook.get_group_posts_sv
+- **GitHub** (10): github.get_repository, github.get_trending_developers, github.get_trending_repositories, github.get_user, github.get_user_activity, github.get_user_contributions, github.get_user_followers, github.get_user_following, github.get_user_pull_requests, github.get_user_repositories
+- **Reddit** (8): reddit.get_posts, reddit.get_post_comments, reddit.get_post_transcript, reddit.get_subreddit, reddit.get_subreddit_details, reddit.get_subreddit_search, reddit.search, reddit.search_subreddits
+- **Amazon** (8): amazon.get_keyword_volume, amazon.get_related_keywords, amazon.get_ranked_keywords, amazon.get_product_competitors, amazon.get_product_rank, amazon.search, amazon.get_product, amazon.get_seller
+- **Web** (6): web.read_page, web.scrape, web.map, web.get_page_audit, web.parse_content, web.get_lighthouse
+- **LinkedIn** (6): linkedin.get_company, linkedin.get_company_posts, linkedin.get_post, linkedin.get_post_transcript, linkedin.get_profile, linkedin.search_posts
+- **Spotify** (6): spotify.get_album, spotify.get_artist, spotify.get_podcast, spotify.get_podcast_episodes, spotify.get_track, spotify.search
+- **TikTok Shop** (6): tiktok.get_product, tiktok.get_shop_product_reviews, tiktok.get_shop_products, tiktok.get_shop_search, tiktok.get_user_showcase, tiktokshop.get_product_details
+- **Backlinks** (6): backlinks.get_summary, backlinks.get_backlinks, backlinks.get_anchors, backlinks.get_referring_domains, backlinks.get_competitors, backlinks.get_ranks
+- **Threads** (5): threads.get_profile, threads.get_post, threads.get_user_posts, threads.search, threads.search_users
+- **Facebook Ad Library** (5): facebook.get_adlibrary_ad, facebook.get_adlibrary_ad_transcript, facebook.get_adlibrary_company_ads, facebook.get_adlibrary_search_ads, facebook.get_adlibrary_search_companies
+- **Pinterest** (5): pinterest.get_board, pinterest.get_pin, pinterest.get_user_boards, pinterest.search, pinterest.get_pin_counts
+- **Rumble** (5): rumble.get_channel_videos, rumble.get_video, rumble.get_video_comments, rumble.get_video_transcript, rumble.search
+- **Keywords** (5): keywords.get_volume, keywords.get_for_site, keywords.get_for_keywords, keywords.get_ad_traffic, keywords.get_trends
+- **Apple Music** (4): apple-music.get_album, apple-music.get_artist, apple-music.get_track, apple-music.search
+- **App Store** (4): appstore.get_app_keywords, appstore.get_app_competitors, appstore.get_app_metrics, appstore.search
+- **Google Play** (4): googleplay.get_app_keywords, googleplay.get_app_competitors, googleplay.get_app_metrics, googleplay.search
+- **Google Business** (4): google.get_business, google.get_business_qa, business.search_listings, business.get_google_reviews
 - **Bluesky** (3): bluesky.get_profile, bluesky.get_post, bluesky.get_user_posts
 - **Facebook Events** (3): facebook.get_event_details, facebook.get_events, facebook.get_events_search
 - **Google Ad Library** (3): google.get_ad, google.get_adlibrary_advertisers_search, google.get_company_ads
@@ -137,16 +137,24 @@ Example:
 
     GET https://api.fetch42.ai/v1/catalog
 
-Returns every endpoint with path, params and price. The core set below returns
-normalized JSON; catalog endpoints return the supplier's shape under `data`
-with the same `meta` billing block. Same auth, same balance, same rules.
+Returns every endpoint with path, params and price. Endpoints in the category
+index above marked normalized return clean JSON; catalog (provider-shaped)
+endpoints return the supplier's own shape under `data` with the same `meta`
+billing block. Same auth, same balance, same rules.
 
 **Prices vary a lot across the catalog** — most are $0.001-$0.036, but a few
 (e.g. `appstore.search`, `googleplay.search`) cost $0.30, a real 60x+ outlier.
 Always check an endpoint's own `price_usd` in `/v1/catalog` before calling it,
 especially for anything you haven't called before.
 
-### Core endpoints
+### Example calls (a handful, NOT the full list)
+
+The category index above is the complete, accurate set of all 292 live
+endpoints — this table below is just a few worked examples with full
+param/price detail for the most common starting points. Don't infer from
+this table's small size that anything missing from it isn't available —
+check the category index above or `/v1/catalog` before concluding a
+platform/capability isn't covered.
 
 | Endpoint | Params | Returns | Price/call |
 |---|---|---|---|
