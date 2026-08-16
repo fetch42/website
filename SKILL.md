@@ -167,7 +167,7 @@ platform/capability isn't covered.
 | /v1/threads/profile | handle | Threads profile with stats | $0.005 |
 | /v1/bluesky/profile | handle | Bluesky profile with stats | $0.001 |
 | /v1/serp/search | q | Google organic results: position, title, url, snippet | $0.003 |
-| /v1/serp/news | q | Google News: title, source, date | $0.003 |
+| /v1/serp/news | q | Google News: title, url, snippet (source+date are inside the snippet string) | $0.003 |
 | /v1/serp/maps | q | Places: name, address, rating | $0.003 |
 | /v1/serp/shopping | q | Products: title, price, source | $0.003 |
 | /v1/serp/images | q | Image results with sources | $0.003 |
@@ -192,6 +192,13 @@ Every successful response:
     }
 
 Use `meta.cost_usd` and `meta.balance_usd` to stay cost-aware without extra calls.
+
+Payload size: some provider-shaped endpoints return very large responses
+(hundreds of KB of media URL variants). Where a `lean` param appears in an
+endpoint's params array (e.g. Instagram posts/reels), pass `lean=true` to
+drop the heavy media/duplicate fields gateway-side — typically a ~90%
+size reduction with captions and all engagement counts kept. Check the
+endpoint's own params array; don't assume every endpoint has it.
 
 Pagination: list-shaped endpoints (comments, followers, posts, tweets, search
 results, reviews...) return one page — usually 5-30 items. If the response
